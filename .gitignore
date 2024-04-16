@@ -1,0 +1,10 @@
+.vscode
+build
+output
+out
+test
+ignore
+.ignore
+cpp_psami_base_2023
+other_problems
+*.zip
