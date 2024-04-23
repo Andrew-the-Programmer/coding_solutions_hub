@@ -6,27 +6,24 @@
 #include <vector>
 #include <algorithm>
 
-template <class T>
-T Squared(const T& value) {
-  return value * value;
+template <class T, class IStream = std::istream>
+void Input(T& value, IStream& istream = std::cin) {
+  istream >> value;
 }
 
-template <class... T>
-void Output(const T&... args) {
-  ((std::cout << args << ' '), ...);
-  std::cout << '\n';
-}
-
-template <class... T>
-void Input(T&... args) {
-  ((std::cin >> args), ...);
-}
-
-template <class T>
-T InputResult() {
+template <class T, class IStream = std::istream>
+T InputResult(IStream& istream = std::cin) {
   T value;
-  std::cin >> value;
+  Input(value, istream);
   return value;
+}
+
+template <class T, class IStream = std::istream>
+void Input(std::vector<T>& vector, size_t size, IStream& istream = std::cin) {
+  vector.reserve(size + vector.size());
+  for (size_t i = 0; i < size; ++i) {
+    vector.emplace_back(InputResult<T>(istream));
+  }
 }
 
 struct IOutputClass {
@@ -155,9 +152,10 @@ struct Vector : IOutputClass {
     return x == other.x && y == other.y;
   }
 
-  // TODO:
   friend auto& operator>>(std::istream& stream, Vector& vector) {
-    stream >> vector.x >> vector.y;
+    using V = Vector<T>;
+    using P = typename V::PointType;
+    vector = V(InputResult<P>());
     return stream;
   }
 
@@ -182,24 +180,6 @@ struct Polygon : std::vector<Point<T>>, IOutputClass {
       ss << this->at(i);
     }
     return ss.str();
-  }
-
-  void Input(size_t size) {
-    this->reserve(this->size() + size * 3);
-    value_type value;
-    for (size_t i = 0; i < size; ++i) {
-      std::cin >> value;
-      this->emplace_back(value);
-      this->emplace_back(value);
-      this->emplace_back(value);
-    }
-  }
-  void Input() {
-    this->resize(0);
-    value_type value;
-    while (std::cin >> value) {
-      this->emplace_back(value);
-    }
   }
 
   auto Surface() {
@@ -277,18 +257,11 @@ Polygon<T> FindConvexHullGrahamAlgorithm(Polygon<T>& polygon) {
 int main() {
   using T = int64_t;
 
-  // Polygon<int> polygon{{1, 2}, {2, 1}, {-2, 1}, {0, 0}};
   std::cout << std::fixed << std::setprecision(1);
 
   Polygon<T> polygon;
-  polygon.Input(InputResult<size_t>());
+  Input(polygon, InputResult<size_t>());
 
-  // std::cout << "sorted:\n";
-  // auto copy = polygon;
-  // SortPoligonByAngles(copy);
-  // std::cout << copy << std::endl;
-
-  // std::cout << "answer:\n";
   auto hull = FindConvexHullGrahamAlgorithm(polygon);
   std::cout << hull.size() << '\n' << hull << '\n' << hull.Surface() << '\n';
 }
