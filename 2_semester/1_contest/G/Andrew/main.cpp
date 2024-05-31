@@ -94,12 +94,6 @@ struct Vector : IOutputClass {
     return {x, y};
   }
 
-  std::string ToString() const override {
-    std::stringstream ss;
-    ss << "Vector(" << x << ", " << y << ")";
-    return ss.str();
-  }
-
   bool IsZero() const {
     return x == 0 && y == 0;
   }
@@ -172,17 +166,6 @@ struct Polygon : std::vector<Point<T>>, IOutputClass {
   using typename Base::value_type;
   using VectorType = Vector<T>;
 
-  std::string ToString() const override {
-    std::stringstream ss;
-    for (size_t i = 0; i < this->size(); ++i) {
-      if (i != 0) {
-        ss << '\n';
-      }
-      ss << this->at(i);
-    }
-    return ss.str();
-  }
-
   auto GetSegmentVector(size_t index) const {
     if (this->size() < 2) {
       throw std::logic_error("Polygon doesn't have segments");
@@ -207,6 +190,7 @@ struct Polygon : std::vector<Point<T>>, IOutputClass {
       return true;
     }
     std::optional<bool> angles_are_positive;
+    // check if all angles have the same sign
     for (size_t i = 0; i < this->size(); ++i) {
       auto curr_cross = GetSegmentCross(i);
       if (curr_cross == 0) {
