@@ -1,10 +1,13 @@
+// Copyright (c) 2024 Andrew
+// I-polygon_surface
+
 #include <iostream>
 #include <iomanip>
 #include <string>
 #include <cmath>
 #include <sstream>
+#include <type_traits>
 #include <vector>
-#include <algorithm>
 
 template <class T, class IStream = std::istream>
 void Input(T& value, IStream& istream = std::cin) {
@@ -49,6 +52,10 @@ struct Point : IOutputClass {
 
   Point() = default;
   Point(const T& x, const T& y) : x(x), y(y) {
+  }
+
+  static constexpr Point Zero() {
+    return {0, 0};
   }
 
   std::string ToString() const override {
@@ -170,6 +177,8 @@ struct Polygon : std::vector<Point<T>>, IOutputClass {
 
   using Base::Base;
   using typename Base::value_type;
+  using VectorType = Vector<T>;
+  using PointType = Point<T>;
 
   std::string ToString() const override {
     std::stringstream ss;
@@ -182,14 +191,25 @@ struct Polygon : std::vector<Point<T>>, IOutputClass {
     return ss.str();
   }
 
+  auto VectorToPoint(size_t index, PointType begin = PointType::Zero()) const {
+    return VectorType(begin, this->at(index));
+  }
+
+  template <class SurfaceType>
+  auto GetSegmentSurfaceDouble(size_t index, PointType begin = PointType::Zero()) const {
+    auto first_vector = this->VectorToPoint(index, begin);
+    auto second_vector = this->VectorToPoint((index + 1) % this->size(), begin);
+    auto surface = static_cast<SurfaceType>(first_vector.Cross(second_vector));
+    return surface;
+  }
+
   auto Surface() {
     using S = long double;
     S surface = 0;
-    for (size_t i = 0; i < this->size() - 1; ++i) {
-      surface += static_cast<S>(Vector<T>(this->at(i)).Cross(this->at(i + 1))) / 2;
+    for (size_t i = 0; i < this->size(); ++i) {
+      surface += this->GetSegmentSurfaceDouble<S>(i);
     }
-    surface += static_cast<S>(Vector<T>(this->back()).Cross(this->front())) / 2;
-    return std::abs(surface);
+    return std::abs(surface) / 2;
   }
 };
 
