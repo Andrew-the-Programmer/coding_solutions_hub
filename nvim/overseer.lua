@@ -30,7 +30,7 @@ overseer.register_template({
 
         return {
             cmd = { "g++" },
-            args = { File(), "-o", targetfile },
+            args = { File(), "-o", targetfile, "-std=c++20" },
             components = { { "on_output_quickfix", open = true }, "default" },
         }
     end,
