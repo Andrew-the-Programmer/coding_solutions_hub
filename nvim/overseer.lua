@@ -14,10 +14,105 @@ function File()
     return file
 end
 
-vim.keymap.set("n", "<leader>cr", "<cmd>OverseerRun<cr>", { desc = "Overseer Run" })
+local function Filebasename()
+    return vim.fn.fnamemodify(File(), ":t:r")
+end
+
+local execute_cmd = My.toggleterm.execute.execute_cmd
+local term_execute = My.toggleterm.execute.term_execute
+
+-- execute_cmd("ls")
+
+function Configure()
+    local cmd = "./other/configure.sh"
+    execute_cmd(cmd)
+end
+
+function Build()
+    local cmd = "./other/build.sh"
+    execute_cmd(cmd)
+end
+
+function Run()
+    local cmd = "./other/run.sh"
+    execute_cmd(cmd)
+end
+
+function Test()
+    local cmd = "./other/test.sh"
+    execute_cmd(cmd)
+end
+
+function CmakeSDir()
+    local dir = Dir()
+    while vim.fn.filereadable(dir .. "/CMakeLists.txt") ~= 1 do
+        dir = vim.fn.fnamemodify(dir, ":h")
+    end
+    return dir
+end
+
+function CdToCmakeSDir()
+    execute_cmd("cd " .. CmakeSDir())
+end
+
+function BuildDone()
+    CdToCmakeSDir()
+    Configure()
+    Build()
+end
 
 overseer.register_template({
-    name = "g++ build - normal",
+    name = "g++ - build",
+    builder = function()
+        BuildDone()
+        return {
+            name = "Done",
+            cmd = { "echo" },
+            args = { "Done" },
+        }
+    end,
+    condition = {
+        filetype = { "cpp" },
+        dir = vim.fn.getcwd(),
+    },
+})
+
+overseer.register_template({
+    name = "g++ - run",
+    builder = function()
+        BuildDone()
+        Run()
+        return {
+            name = "Done",
+            cmd = { "echo" },
+            args = { "Done" },
+        }
+    end,
+    condition = {
+        filetype = { "cpp" },
+        dir = vim.fn.getcwd(),
+    },
+})
+
+overseer.register_template({
+    name = "g++ - test",
+    builder = function()
+        BuildDone()
+        Test()
+        return {
+            name = "Done",
+            cmd = { "echo" },
+            args = { "Done" },
+        }
+    end,
+    condition = {
+        filetype = { "cpp" },
+        dir = vim.fn.getcwd(),
+    },
+})
+
+overseer.register_template({
+    name = "g++ - normal",
     builder = function()
         local outdirname = "out"
         local outdir = Dir() .. "/" .. outdirname
@@ -29,6 +124,7 @@ overseer.register_template({
         vim.cmd("silent !mkdir -p " .. outdir)
 
         return {
+            name = "g++",
             cmd = { "g++" },
             args = { File(), "-o", targetfile, "-std=c++20" },
             components = { { "on_output_quickfix", open = true }, "default" },

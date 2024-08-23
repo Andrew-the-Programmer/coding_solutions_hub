@@ -1,1 +1,1 @@
-require("nvim.overseer")
+require("nvim.init")
