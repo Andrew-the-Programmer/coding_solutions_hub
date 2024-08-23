@@ -2,10 +2,11 @@
 
 echo "Zip"
 
-cd "$(dirname "$0")" || exit
-
+problem_dir=".."
 zip_file="solution.zip"
-solution_dir="../solution"
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+cd "$SCRIPT_DIR" || exit
 
 exclude=(
   "*etc*"
