@@ -8,3 +8,5 @@ cpp_psami_base_2023
 *.zip
 test
 other_problems
+other_solutions
+.luarc.json
