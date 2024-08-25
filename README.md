@@ -1,6 +1,6 @@
 # Introduction
 
-Hello :3
+Hello :3\
 I currently study in MIPT-fpmi.
 This is my algorithms homework.
 
