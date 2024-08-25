@@ -3,7 +3,6 @@
 #include <cstddef>
 #include <iostream>
 #include <vector>
-#include <queue>
 #include <optional>
 
 using NodeType = size_t;
