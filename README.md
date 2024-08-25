@@ -115,11 +115,13 @@ After that create MR from a new branch.
 ## Functionality
 
 After running [create_solution.py](create_solution.py) usefull files will be copied to
-[problemdir](#notations) and [userdir](#notations) from [ignore/problem_scratch](ignore/problem_scratch)
+[problemdir](#notations) and [userdir](#notations) from 
+[ignore/problem_scratch](ignore/problem_scratch)
 and [ignore/solution_scratch](ignore/solution_scratch).
 You can modify them and add something new there if you want.
 After that create mr from a new branch.
-You could also modify existing [problemdir](#notations) and [userdir](#notations) (if user don't mind (I don't)).
+You could also modify existing [problemdir](#notations) and
+[userdir](#notations) (if user don't mind (I don't)).
 
 ## Documentation
 
@@ -127,3 +129,9 @@ All documentation can be found in README.md files.
 Feel free to modify and extend them.
 Documentation for problems can be found in [problemdir](#notations)/README.md files.
 Would be really nice if you could add documentation for problems 🙏.
+
+# Other notes
+
+[.clang-format](.clang-format) and [.clang-tidy](.clang-tidy) are used
+to format your code.\
+In [other](other) you might find useful code.
