@@ -1,3 +1,16 @@
+# Table of Contents
+
+- [Introduction](#introduction)
+- [Features](#features)
+- [Notations](#notations)
+- [Usage](#usage)
+- [Contribute](#contribute)
+    - [Solution](#solution)
+    - [Functionality](#functionality)
+    - [Tests](#tests)
+    - [Documentation](#documentation)
+- [Other notes](#other-notes)
+
 # Introduction
 
 Hello :3\
