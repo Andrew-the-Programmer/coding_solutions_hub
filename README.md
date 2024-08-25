@@ -18,7 +18,7 @@ For clarity please mind these notations:
 
 - `problemdir = ./<semester>/<contest>/<problem>`\
 Directory for the problem.
-- `userdir = [problemdir](#notations)/<username>`\
+- `userdir = problemdir/<username>`\
 Directory for the user solution.
 
 > It may not make sense rn, but I hope it will eventually, hopefully.
