@@ -1,13 +1,8 @@
-.vscode
-build
-output
-out
-ignore
 .ignore
 cpp_psami_base_2023
-*.zip
-test
 other_problems
 other_solutions
 .luarc.json
 create_solution.py
+out
+__pycache__
