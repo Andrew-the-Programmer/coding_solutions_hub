@@ -125,6 +125,12 @@ See [ignore/problem_scratch/test/README.md](ignore/problem_scratch/test/README.m
 for more info.
 After that create MR from a new branch.
 
+> Public tests can also be found in
+[cpp_psami_base_2023](https://gitlab.com/ibr11/cpp_psami_base_2023).
+I will try to integrate their tests in
+[ignore/problem_scratch/tests/backend](ignore/problem_scratch/tests/backend).
+Right now it's not working.
+
 ## Functionality
 
 After running [create_solution.py](create_solution.py) usefull files will be copied to
