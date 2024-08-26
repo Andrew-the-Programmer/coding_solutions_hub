@@ -30,6 +30,7 @@ def TestCaseBeginMsg(case_name: str) -> None:
 
 
 def TestCase(case_path: pl.Path, executable: pl.Path) -> Any:
+    TestCaseBeginMsg(case_name=case_path.name)
     e = RunTest(case_path=case_path, executable=executable)
     if e.returncode == 0:
         Check(case_path=case_path)
