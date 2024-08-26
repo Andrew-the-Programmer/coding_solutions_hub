@@ -2,8 +2,7 @@
 
 import argparse
 import pathlib as pl
-import subprocess
-from typing import Any, Iterable
+from typing import Iterable
 
 import git
 import inquirer
