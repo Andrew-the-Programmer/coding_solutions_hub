@@ -64,13 +64,13 @@ def ListContributors(args) -> Iterable[str]:
 
 def ListSemesters(args) -> Iterable[str]:
     dirs = ListDir(REPO_DIR)
-    return sorted([x for x in dirs if x.endswith("_semester")])
+    return sorted([x for x in dirs if x.endswith(SEMESTER_POSTFIX)])
 
 
 def ListContests(args) -> Iterable[str]:
     semester_dir = REPO_DIR / args.semester
     dirs = ListDir(semester_dir)
-    return sorted([x for x in dirs if x.endswith("_contest")])
+    return sorted([x for x in dirs if x.endswith(CONTEST_POSTFIX)])
 
 
 def ListProblems(args) -> Iterable[str]:
