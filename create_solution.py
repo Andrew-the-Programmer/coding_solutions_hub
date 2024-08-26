@@ -69,7 +69,7 @@ def ListProblems(args) -> Iterable[str]:
 
 
 def SetupGit(args) -> None:
-    subprocess.run([Here() / "require_clean_work_tree.sh"]).check_returncode()
+    subprocess.run([IGNORE_DIR / "require_clean_work_tree.sh"]).check_returncode()
     args.repo = git.Repo(REPO_DIR)
     branch = args.repo.branches[args.branch_name]
     branch.checkout()

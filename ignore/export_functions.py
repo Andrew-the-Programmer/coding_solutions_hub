@@ -38,10 +38,11 @@ def LinkAllAsIs(filenames: Iterable[str], targetdir: pl.Path) -> None:
 
 
 def CopyDirsLinkFiles(*, src: pl.Path, dst: pl.Path) -> None:
+    print(f"{src=}, {dst=}")
     for path in src.iterdir():
         if path.is_dir():
             next_dst = dst / path.name
             next_dst.mkdir(exist_ok=True, parents=True)
-            CopyDirsLinkFiles(path, next_dst)
+            CopyDirsLinkFiles(src=path, dst=next_dst)
         else:
-            LinkAsIs(path.name, dst)
+            Link(src=path, dst=dst / path.name)
