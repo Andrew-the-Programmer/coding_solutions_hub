@@ -8,6 +8,8 @@ from typing import Any, Iterable
 import git
 import inquirer
 
+import ignore
+
 
 def Here() -> pl.Path:
     return pl.Path(__file__).parent
@@ -16,8 +18,8 @@ def Here() -> pl.Path:
 REPO_DIR = Here()
 IGNORE_DIR = REPO_DIR / "ignore"
 CONTRIBUTORS_DIR = IGNORE_DIR / "contributors"
-PROBLEM_SCRATCH_DIR = IGNORE_DIR / "problem_scratch"
-SOLUTION_SCRATCH_DIR = IGNORE_DIR / "solution_scratch"
+PROBLEM_DIR_SCRATCH = IGNORE_DIR / "problem_scratch"
+USER_DIR_SCRATCH = IGNORE_DIR / "solution_scratch"
 
 
 def Select(options: list[str], target: str, ask_new: bool) -> str:
@@ -74,8 +76,8 @@ def SetupGit(args) -> None:
 
 
 def AskArgs(args) -> None:
-    if args.path_to_problem:
-        ptp = args.path_to_problem
+    if args.problemdir_path:
+        ptp = args.problemdir_path
         args.problem = ptp.name
         args.contest = ptp.parent.name
         args.semester = ptp.parent.parent.name
@@ -103,6 +105,8 @@ def AskArgs(args) -> None:
             "problem",
             ask_new=True,
         )
+    args.problemdir_path = REPO_DIR / args.semester / args.contest / args.problem
+    args.userdir_path = args.problemdir_path / args.username
 
 
 def CopyContents(*, src: pl.Path, dst: pl.Path) -> Any:
@@ -116,16 +120,14 @@ def CreateSolution(args) -> None:
     # Create new contributor
     contributor_dir.mkdir(parents=True, exist_ok=True)
 
-    args.path_to_problem = REPO_DIR / args.semester / args.contest / args.problem
-    args.path_to_solution = args.path_to_problem / args.username
-    args.path_to_solution.mkdir(parents=True, exist_ok=True)
-    CopyContents(src=PROBLEM_SCRATCH_DIR, dst=args.path_to_problem).check_returncode()
-    CopyContents(src=SOLUTION_SCRATCH_DIR, dst=args.path_to_solution).check_returncode()
+    ignore.problemdir_scratch.export.Export(
+        problemdir=args.problemdir_path, userdir=args.userdir_path
+    )
 
 
 def CommitChages(args) -> None:
     repo: git.Repo = args.repo
-    repo.git.add(args.path_to_problem)
+    repo.git.add(args.problemdir_path)
     repo.index.commit(
         f"\
 {args.branch_name}: {args.semester}/{args.contest}/{args.problem}: \

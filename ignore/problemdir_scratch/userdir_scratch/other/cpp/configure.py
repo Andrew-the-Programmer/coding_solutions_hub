@@ -2,12 +2,14 @@
 
 import subprocess
 
-from constants import BUILD_DIR, ROOT_DIR
+from constants import BUILD_DIR, USER_DIR
+
+print(USER_DIR)
 
 
 def Configure() -> subprocess.CompletedProcess:
     BUILD_DIR.mkdir(parents=True, exist_ok=True)
-    return subprocess.run(["cmake", "-S", ROOT_DIR, "-B", BUILD_DIR])
+    return subprocess.run(["cmake", "-S", USER_DIR, "-B", BUILD_DIR])
 
 
 def main() -> None:

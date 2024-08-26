@@ -3,5 +3,5 @@ cpp_psami_base_2023
 .luarc.json
 out
 __pycache__
-.vscode/*
+.vscode
 !.vscode/tasks.json

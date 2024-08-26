@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 
 import argparse
-import pathlib as pl
-from typing import TextIO, Any
-import subprocess
-
 import os
+import pathlib as pl
+import subprocess
+from typing import Any, TextIO
 
-from check import Check
-from run import RunTest
+from .check import Check
+from .run import RunTest
 
 
 def Here() -> pl.Path:
@@ -30,19 +29,19 @@ def TestCaseBeginMsg(case_name: str) -> None:
     print(f"=== {case_name} ===")
 
 
-def TestCase(case_dir: pl.Path, executable: pl.Path) -> Any:
-    e = RunTest(case_dir=case_dir, executable=executable)
+def TestCase(case_path: pl.Path, executable: pl.Path) -> Any:
+    e = RunTest(case_path=case_path, executable=executable)
     if e.returncode == 0:
-        Check(case_dir=case_dir)
+        Check(case_path=case_path)
     return e
 
 
 def Test(executable: pl.Path) -> None:
-    if not os.access(executable, os.X_OK):
-        print("Executable don't exist or is not executable")
+    if not executable.is_file() or not os.access(executable, os.X_OK):
+        print(f"Executable '{executable}' don't exist or is not executable")
         exit(1)
-    for case_dir in ListCases():
-        TestCase(case_dir, executable)
+    for case_path in ListCases():
+        TestCase(case_path, executable)
 
 
 def main():

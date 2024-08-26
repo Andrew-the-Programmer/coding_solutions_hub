@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/bin/python3
 
 import subprocess
 
@@ -9,10 +9,18 @@ def Test() -> subprocess.CompletedProcess:
     return subprocess.run(
         [
             TEST_EXECUTABLE,
-            f"--executable {SOLUTION_EXECUTABLE}",
-            f"--solution {SOLUTION_DIR}",
+            "--executable",
+            SOLUTION_EXECUTABLE,
+            "--solution",
+            SOLUTION_DIR,
         ]
     )
+
+
+# def Test() -> subprocess.CompletedProcess:
+#     return subprocess.run(
+#         f'{TEST_EXECUTABLE} --executable "{SOLUTION_EXECUTABLE}" --solution "{SOLUTION_DIR}"',
+#     )
 
 
 def main() -> None:

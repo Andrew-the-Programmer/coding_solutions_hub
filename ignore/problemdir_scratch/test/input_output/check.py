@@ -10,6 +10,7 @@ def Here() -> pl.Path:
 
 
 CASES_DIR = Here() / "cases"
+print(f"{CASES_DIR=}")
 OUTPUT_FILE_NAME = "output.txt"
 CORRECT_OUTPUT_FILE_NAME = "correct_output.txt"
 
@@ -39,11 +40,11 @@ def Compare(f1: pl.Path, f2: pl.Path) -> bool:
         return CompareOutputs(output1, output2)
 
 
-def Check(case_dir: pl.Path) -> bool:
-    e = Compare(GetOutputFilePath(case_dir),
-                GetCorrectOutputFilePath(case_dir.name))
+def Check(case_path: pl.Path) -> bool:
+    e = Compare(GetOutputFilePath(case_path),
+                GetCorrectOutputFilePath(case_path))
     if not e:
-        print(f"Test {case_dir.name} failed")
+        print(f"Test {case_path.name} failed")
     return e
 
 

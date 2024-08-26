@@ -153,4 +153,5 @@ Would be really nice if you could add documentation for problems 🙏.
 
 [.clang-format](.clang-format) and [.clang-tidy](.clang-tidy) are used
 to format your code.\
-In [other](other) you might find useful code.
+In [other](other) folder you might find useful code.
+I'll soon move everything to the main branch.

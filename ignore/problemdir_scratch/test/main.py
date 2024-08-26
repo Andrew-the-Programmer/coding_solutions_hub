@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-import subprocess
 import argparse
 import pathlib as pl
-import input_output.Test
-import backend.Test
+
+import backend.main as backend
+import input_output.main as input_output
 
 
 def Here() -> pl.Path:
@@ -38,11 +38,22 @@ def Test(*, executable: pl.Path, solution: pl.Path) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser("Test your solution. See ./README.md")
-    parser.add_argument("--executable", "-e", type=pl.Path,
-                        help="Path to the executable. Pass this argument to test input_output.", default=None)
-    parser.add_argument("--solution", "-s", type=pl.Path,
-                        help="Path to the solution directory. Pass this argument to test backend.", default=None)
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--executable",
+        "-e",
+        type=pl.Path,
+        help="Path to the executable. Pass this argument to test input_output.",
+        default=None,
+    )
+    parser.add_argument(
+        "--solution",
+        "-s",
+        type=pl.Path,
+        help="Path to the solution directory. Pass this argument to test backend.",
+        default=None,
+    )
+
     args = parser.parse_args()
 
     executable: pl.Path | None = args.executable

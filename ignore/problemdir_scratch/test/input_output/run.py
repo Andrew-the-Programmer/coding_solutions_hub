@@ -2,8 +2,8 @@
 
 import argparse
 import pathlib as pl
-from typing import TextIO, Any
 import subprocess
+from typing import Any, TextIO
 
 
 def Here() -> pl.Path:
@@ -11,6 +11,7 @@ def Here() -> pl.Path:
 
 
 CASES_DIR = Here() / "cases"
+print(f"run.py: {CASES_DIR=}")
 OUTPUT_FILE_NAME = "output.txt"
 INPUT_FILE_NAME = "input.txt"
 
@@ -30,17 +31,16 @@ def GetInputFilePath(case_path: pl.Path) -> pl.Path:
 def Run(
     *, executable: pl.Path, input_file: pl.Path, output_file: pl.Path
 ) -> subprocess.CompletedProcess:
-    return subprocess.run(executable, stdin=input_file, stdout=output_file)
+    with input_file.open("r") as stdin, output_file.open("w") as stdout:
+        return subprocess.run(executable, stdin=stdin, stdout=stdout)
 
 
-def RunTest(
-    *, case_dir: pl.Path, executable: pl.Path
-) -> subprocess.CompletedProcess:
-    input_file = GetInputFilePath(case_dir)
-    output_file = GetOutputFilePath(case_dir)
+def RunTest(*, case_path: pl.Path, executable: pl.Path) -> subprocess.CompletedProcess:
+    input_file = GetInputFilePath(case_path)
+    output_file = GetOutputFilePath(case_path)
     e = Run(executable=executable, input_file=input_file, output_file=output_file)
     if e.returncode != 0:
-        print(f"Failed to run test {case_dir.name}")
+        print(f"Failed to run test {case_path.name}")
     return e
 
 
@@ -50,10 +50,12 @@ def main():
         "--executable", type=pl.Path, help="Path to the executable", default=None
     )
     parser.add_argument(
-        "--case-dir", type=pl.Path, help="Path to the output dir of the test", default=None
+        "--case-dir",
+        type=pl.Path,
+        help="Path to the output dir of the test",
+        default=None,
     )
-    parser.add_argument("--case-name", type=str,
-                        help="Test name", default=None)
+    parser.add_argument("--case-name", type=str, help="Test name", default=None)
 
     args: argparse.Namespace = parser.parse_args()
 
@@ -72,7 +74,7 @@ def main():
         print("Case directory not specified")
         exit(1)
 
-    e = RunTest(case_dir=case_dir, executable=executable)
+    e = RunTest(case_path=case_dir, executable=executable)
 
     return e
 
