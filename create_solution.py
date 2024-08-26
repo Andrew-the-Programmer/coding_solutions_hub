@@ -8,7 +8,7 @@ from typing import Any, Iterable
 import git
 import inquirer
 
-import ignore
+import ignore.export as export
 
 
 def Here() -> pl.Path:
@@ -20,21 +20,31 @@ IGNORE_DIR = REPO_DIR / "ignore"
 CONTRIBUTORS_DIR = IGNORE_DIR / "contributors"
 PROBLEM_DIR_SCRATCH = IGNORE_DIR / "problem_scratch"
 USER_DIR_SCRATCH = IGNORE_DIR / "solution_scratch"
+SEMESTER_POSTFIX = "_semester"
+CONTEST_POSTFIX = "_contest"
 
 
-def Select(options: list[str], target: str, ask_new: bool) -> str:
+def Select(
+    options: list[str], target: str, ask_new: bool = True, ask_exit: bool = True
+) -> str:
     new_option_name = "<new>"
+    exit_option_name = "<exit>"
     if ask_new:
         options.append(new_option_name)
+    if ask_exit:
+        options.append(exit_option_name)
     questions = [
         inquirer.List(
             target,
-            message=f"Select {target}:",
+            message=f"Select {target}",
             choices=options,
         ),
     ]
     answers = inquirer.prompt(questions)
     selected = answers[target]
+
+    if selected == exit_option_name:
+        exit(0)
 
     if ask_new and selected == new_option_name:
         selected = input(f"Enter new {target}: ")
@@ -49,30 +59,79 @@ def ListDir(path: pl.Path) -> list[str]:
 
 
 def ListContributors(args) -> Iterable[str]:
-    return ListDir(CONTRIBUTORS_DIR)
+    return sorted(ListDir(CONTRIBUTORS_DIR))
 
 
 def ListSemesters(args) -> Iterable[str]:
     dirs = ListDir(REPO_DIR)
-    return [x for x in dirs if x.endswith("_semester")]
+    return sorted([x for x in dirs if x.endswith("_semester")])
 
 
 def ListContests(args) -> Iterable[str]:
     semester_dir = REPO_DIR / args.semester
     dirs = ListDir(semester_dir)
-    return [x for x in dirs if x.endswith("_contest")]
+    return sorted([x for x in dirs if x.endswith("_contest")])
 
 
 def ListProblems(args) -> Iterable[str]:
     contest_dir = REPO_DIR / args.semester / args.contest
-    return ListDir(contest_dir)
+    return sorted(ListDir(contest_dir))
+
+
+def SelectUsername(args) -> None:
+    username: str | None = args.username
+    if username:
+        return
+    username = Select(
+        ListContributors(args),
+        "username",
+    )
+    args.username = username
+
+
+def SelectSemester(args) -> None:
+    semester: str | None = args.semester
+    if semester:
+        return
+    semester = Select(
+        ListSemesters(args),
+        "semester",
+    )
+    if not semester.endswith(SEMESTER_POSTFIX):
+        semester += SEMESTER_POSTFIX
+    args.semester = semester
+
+
+def SelectContest(args) -> None:
+    contest: str | None = args.contest
+    if contest:
+        return
+    contest = Select(
+        ListContests(args),
+        "contest",
+    )
+    if not contest.endswith(CONTEST_POSTFIX):
+        contest += CONTEST_POSTFIX
+    args.contest = contest
+
+
+def SelectProblem(args) -> None:
+    problem: str | None = args.problem
+    if problem:
+        return
+    problem = Select(
+        ListProblems(args),
+        "problem",
+    )
+    args.problem = problem
 
 
 def SetupGit(args) -> None:
-    subprocess.run([IGNORE_DIR / "require_clean_work_tree.sh"]).check_returncode()
-    args.repo = git.Repo(REPO_DIR)
-    branch = args.repo.branches[args.branch_name]
-    branch.checkout()
+    # subprocess.run([IGNORE_DIR / "require_clean_work_tree.sh"]).check_returncode()
+    # args.repo = git.Repo(REPO_DIR)
+    # branch = args.repo.branches[args.branch_name]
+    # branch.checkout()
+    pass
 
 
 def AskArgs(args) -> None:
@@ -81,37 +140,12 @@ def AskArgs(args) -> None:
         args.problem = ptp.name
         args.contest = ptp.parent.name
         args.semester = ptp.parent.parent.name
-    if not args.username:
-        args.username = Select(
-            ListContributors(args),
-            "username",
-            ask_new=True,
-        )
-    if not args.semester:
-        args.semester = Select(
-            ListSemesters(args),
-            "semester",
-            ask_new=True,
-        )
-    if not args.contest:
-        args.contest = Select(
-            ListContests(args),
-            "contest",
-            ask_new=True,
-        )
-    if not args.problem:
-        args.problem = Select(
-            ListProblems(args),
-            "problem",
-            ask_new=True,
-        )
+    SelectUsername(args)
+    SelectSemester(args)
+    SelectContest(args)
+    SelectProblem(args)
     args.problemdir_path = REPO_DIR / args.semester / args.contest / args.problem
     args.userdir_path = args.problemdir_path / args.username
-
-
-def CopyContents(*, src: pl.Path, dst: pl.Path) -> Any:
-    # Please be careful modifying this function
-    return subprocess.run(["cp", "-arn", f"{src}/.", f"{dst}/."])
 
 
 def CreateSolution(args) -> None:
@@ -120,19 +154,20 @@ def CreateSolution(args) -> None:
     # Create new contributor
     contributor_dir.mkdir(parents=True, exist_ok=True)
 
-    ignore.problemdir_scratch.export.Export(
+    export.Export(
         problemdir=args.problemdir_path, userdir=args.userdir_path
     )
 
 
 def CommitChages(args) -> None:
-    repo: git.Repo = args.repo
-    repo.git.add(args.problemdir_path)
-    repo.index.commit(
-        f"\
-{args.branch_name}: {args.semester}/{args.contest}/{args.problem}: \
-{args.username}: INITIAL COMMIT"
-    )
+    #     repo: git.Repo = args.repo
+    #     repo.git.add(args.problemdir_path)
+    #     repo.index.commit(
+    #         f"\
+    # {args.branch_name}: {args.semester}/{args.contest}/{args.problem}: \
+    # {args.username}: INITIAL COMMIT"
+    #     )
+    pass
 
 
 def main() -> None:
@@ -166,7 +201,7 @@ def main() -> None:
         default=None,
     )
     parser.add_argument(
-        "--path-to-problem",
+        "--problemdir-path",
         type=pl.Path,
         help="""
             Path to the problem
