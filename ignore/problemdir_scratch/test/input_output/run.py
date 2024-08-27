@@ -11,7 +11,6 @@ def Here() -> pl.Path:
 
 
 CASES_DIR = Here() / "cases"
-print(f"run.py: {CASES_DIR=}")
 OUTPUT_FILE_NAME = "output.txt"
 INPUT_FILE_NAME = "input.txt"
 

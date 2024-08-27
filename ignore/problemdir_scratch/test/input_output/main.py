@@ -22,7 +22,7 @@ def GetCasePath(case_name: str) -> pl.Path:
 
 
 def ListCases() -> list[pl.Path]:
-    return [x for x in CASES_DIR.iterdir() if x.is_dir()]
+    return sorted([x for x in CASES_DIR.iterdir() if x.is_dir()])
 
 
 def TestCaseBeginMsg(case_name: str) -> None:

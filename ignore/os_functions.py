@@ -1,14 +1,17 @@
 import pathlib as pl
 import subprocess
 from typing import Iterable
+import shutil
 
 
 def Here() -> pl.Path:
     return pl.Path(__file__).parent
 
 
-def Copy(src: pl.Path, dst: pl.Path) -> subprocess.CompletedProcess:
-    return subprocess.run(["cp", "-arn", f"{src}", f"{dst}"])
+def Copy(
+    src: pl.Path, dst: pl.Path, *, flags: str = "-arn"
+) -> subprocess.CompletedProcess:
+    return subprocess.run(["cp", flags, f"{src}", f"{dst}"])
 
 
 def CopyAsIs(filename: str, targetdir: pl.Path) -> subprocess.CompletedProcess:
@@ -19,7 +22,7 @@ def CopyContents(*, src: pl.Path, dst: pl.Path) -> subprocess.CompletedProcess:
     return subprocess.run(["cp", "-arn", f"{src}/.", f"{dst}/."])
 
 
-def Link(*, src: pl.Path, dst: pl.Path) -> subprocess.CompletedProcess:
+def Link(src: pl.Path, dst: pl.Path) -> subprocess.CompletedProcess:
     return subprocess.run(["ln", "-s", f"{src}", f"{dst}"])
 
 
@@ -46,3 +49,7 @@ def CopyDirsLinkFiles(*, src: pl.Path, dst: pl.Path) -> None:
             CopyDirsLinkFiles(src=path, dst=next_dst)
         else:
             Link(src=path, dst=dst / path.name)
+
+
+def Move(src: pl.Path, dst: pl.Path) -> None:
+    shutil.move(src, dst)

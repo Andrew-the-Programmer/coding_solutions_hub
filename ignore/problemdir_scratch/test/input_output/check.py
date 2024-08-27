@@ -10,7 +10,6 @@ def Here() -> pl.Path:
 
 
 CASES_DIR = Here() / "cases"
-print(f"{CASES_DIR=}")
 OUTPUT_FILE_NAME = "output.txt"
 CORRECT_OUTPUT_FILE_NAME = "correct_output.txt"
 
