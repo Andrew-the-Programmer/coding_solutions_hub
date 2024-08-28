@@ -1,6 +1,7 @@
 // Copyright 2024 Andrew
 
 #include <cstddef>
+#include <deque>
 #include <iostream>
 #include <vector>
 #include <optional>
