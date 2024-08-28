@@ -107,6 +107,3 @@ def UpdateContributor(
     whitelist: list[str] = None,
 ) -> None:
     targetdir.mkdir(parents=True, exist_ok=True)
-
-
-UpdateProblem(Here() / "problemdir")
