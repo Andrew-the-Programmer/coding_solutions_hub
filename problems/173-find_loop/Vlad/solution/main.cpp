@@ -3,23 +3,23 @@
 #include <vector>
 #include <set>
 
-enum class Color { white, grey, black };
+enum class Color { WHITE, GREY, BLACK };
 
 bool DFS(std::vector<std::set<int>> &graph, std::vector<Color> &colors, std::vector<int> &cycle, int cur, int &f) {
   cycle.push_back(cur);
-  colors[cur - 1] = Color::grey;
+  colors[cur - 1] = Color::GREY;
   for (auto &i : graph[cur - 1]) {
-    if (colors[i - 1] == Color::grey) {
+    if (colors[i - 1] == Color::GREY) {
       f = i;
       return true;
     }
-    if (colors[i - 1] == Color::white) {
+    if (colors[i - 1] == Color::WHITE) {
       if (DFS(graph, colors, cycle, i, f)) {
         return true;
       }
     }
   }
-  colors[cur - 1] = Color::black;
+  colors[cur - 1] = Color::BLACK;
   cycle.pop_back();
   return false;
 }
@@ -36,11 +36,11 @@ int main() {
     std::cin >> a >> b;
     graph[a - 1].emplace(b);
   }
-  std::vector<Color> colors{static_cast<size_t>(n), Color::white};
+  std::vector<Color> colors{static_cast<size_t>(n), Color::WHITE};
   std::vector<int> cycle;
   int f = n;
   for (int i = 1; i < n + 1; ++i) {
-    if (colors[i - 1] == Color::black) {
+    if (colors[i - 1] == Color::BLACK) {
       continue;
     }
     auto is_cycle = DFS(graph, colors, cycle, i, f);
