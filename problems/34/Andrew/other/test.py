@@ -17,12 +17,6 @@ def Test() -> subprocess.CompletedProcess:
     )
 
 
-# def Test() -> subprocess.CompletedProcess:
-#     return subprocess.run(
-#         f'{TEST_EXECUTABLE} --executable "{SOLUTION_EXECUTABLE}" --solution "{SOLUTION_DIR}"',
-#     )
-
-
 def main() -> None:
     Test().check_returncode()
 

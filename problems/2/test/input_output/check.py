@@ -2,18 +2,9 @@
 
 import argparse
 import pathlib as pl
-import re
 from typing import TextIO
 
-
-def Here() -> pl.Path:
-    return pl.Path(__file__).parent
-
-
-CASES_DIR = Here() / "cases"
-print(f"{CASES_DIR=}")
-OUTPUT_FILE_NAME = "output.txt"
-CORRECT_OUTPUT_FILE_NAME = "correct_output.txt"
+from .constants import CASES_DIR, CORRECT_OUTPUT_FILE_NAME, OUTPUT_FILE_NAME
 
 
 def GetCasePath(case_name: str) -> pl.Path:
@@ -29,12 +20,7 @@ def GetCorrectOutputFilePath(case_path: pl.Path) -> pl.Path:
 
 
 def GetWords(f: TextIO) -> list[str]:
-    text = f.read()
-    # words = re.findall(r"\b\w+\b", text)
-    words = text.split()
-    # print(f"{text=}")
-    # print(f"{words=}")
-    return words
+    return f.read().split()
 
 
 def CompareOutputs(output1: TextIO, output2: TextIO) -> bool:
