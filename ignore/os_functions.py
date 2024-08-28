@@ -1,7 +1,7 @@
 import pathlib as pl
+import shutil
 import subprocess
 from typing import Iterable
-import shutil
 
 
 def Here() -> pl.Path:
@@ -53,3 +53,26 @@ def CopyDirsLinkFiles(*, src: pl.Path, dst: pl.Path) -> None:
 
 def Move(src: pl.Path, dst: pl.Path) -> None:
     shutil.move(src, dst)
+
+
+def RelativePath(From: pl.Path, To: pl.Path) -> pl.Path:
+    cur = From
+    count = 0
+    parents = list(To.parents)
+    if To.is_dir():
+        parents.append(To)
+    while cur not in parents and cur != To:
+        count += 1
+        cur = cur.parent
+
+    relative = To.relative_to(cur)
+
+    if count == 0:
+        return relative
+
+    p = pl.Path("..")
+    for _ in range(count - 1):
+        p = p / ".."
+
+    result = p / relative
+    return result

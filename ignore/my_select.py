@@ -8,11 +8,15 @@ from typing import Callable, Iterable
 import inquirer
 
 
-def _Select(options: Iterable[str]) -> str:
+def _Select(options: Iterable[str], prompt: str = ">") -> str:
     input_str = "\n".join(options)
     # input_str = "hello world\nbye world"
     process = subprocess.run(
-        ["fzf"], input=input_str, text=True, encoding="utf-8", stdout=subprocess.PIPE
+        ["fzf", "--prompt", prompt],
+        input=input_str,
+        text=True,
+        encoding="utf-8",
+        stdout=subprocess.PIPE,
     )
     output = process.stdout.split("\n")[0]
     return output
@@ -22,6 +26,7 @@ def Select(
     options: list[str],
     *,
     target: str = None,
+    prompt: str = None,
     ask_new: bool = True,
     ask_exit: bool = True,
     on_new: Callable = None,
@@ -36,7 +41,10 @@ def Select(
         options.insert(0, exit_option_name)
 
     if target is None:
-        target = ""
+        target = "option"
+
+    if prompt is None:
+        prompt = f"Select {target}>"
 
     if on_exit is None:
 
@@ -46,10 +54,9 @@ def Select(
     if on_new is None:
 
         def on_new():
-            return input(f"Enter new {target}: ")
+            return input(f"Input new {target}>")
 
-
-    selected = _Select(options)
+    selected = _Select(options, prompt=prompt)
 
     if ask_exit and selected == exit_option_name:
         on_exit()
@@ -60,3 +67,10 @@ def Select(
             raise ValueError(f"Invalid new {target}: {selected}")
 
     return selected
+
+
+def Confirm(message: str, **kwargs) -> bool:
+    yes_option = "yes"
+    no_option = "no"
+    selected = Select([yes_option, no_option], ask_new=False, prompt=message, **kwargs)
+    return selected == yes_option

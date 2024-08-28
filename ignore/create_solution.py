@@ -7,45 +7,37 @@ import typing
 
 import git
 from constants import CONTRIBUTORS_DIR, PROBLEMS_DIR
-from iterate_project import GetAllProblemIds, GetAllProblems, GetContributors
-from my_select import Select
-from update import UpdateProblem, UpdateUserDir, UpdateContributor
+from iterate_project import (
+    GetAllProblemIds,
+    GetAllProblems,
+    GetContributors,
+    GetUniqueProblemId,
+)
+from my_select import Confirm, Select
+from update import UpdateContributor, UpdateProblem, UpdateUserDir
 
-
-def SelectUsername(args) -> None:
-    username: str | None = args.username
-    if username:
-        return
-    username = Select(
-        GetContributors(),
-        target="username",
-    )
-    args.username = username
-
-
-def GetNewProblemId() -> int:
-    ids = GetAllProblemIds()
-    return 0 if len(ids) == 0 else max(ids) + 1
+import create_link
 
 
 def Format(name: str) -> str:
     return name.replace(" ", "_")
 
+
 def CreateProblemName(pid: str, desc: str) -> str:
     return f"{Format(pid)}-{Format(desc)}"
 
 
-def AskForNewProblemName() -> str:
+def InputNewProblemName() -> str:
     msg = """
 Enter problem name. If new name dont start with number,
 unique id will be prepended. You could use existing id, this would indicate
 that your problem is a slight variation of another.
-    """
+"""
     # print(msg)
     desc = input("Input short problem description (optional): ")
     pid = input("Input problem id (or press enter to generate new id): ")
     if not pid:
-        pid = f"{GetNewProblemId()}"
+        pid = f"{GetUniqueProblemId()}"
     name = CreateProblemName(pid, desc)
 
     print(f"New problem name is: {name}")
@@ -53,70 +45,88 @@ that your problem is a slight variation of another.
     return name
 
 
-def SelectProblem(args) -> None:
-    problem_name: str | None = args.problem_name
-    if problem_name:
-        return
-    problem_name = Select(
-        [x.name for x in GetAllProblems()],
-        target="problem",
-        on_new=AskForNewProblemName,
+def SelectUsername() -> str:
+    username = Select(
+        GetContributors(),
+        target="username",
     )
-    args.problem_name = problem_name
+    return username
 
 
-def AskArgs(args) -> None:
-    if args.problem_path:
-        args.problem_name = args.problem_path.name
-    SelectUsername(args)
-    SelectProblem(args)
-    args.problem_path = PROBLEMS_DIR / args.problem_name
-    args.userdir_path = args.problem_path / args.username
+def SelectProblem(target_path: pl.Path) -> None:
+    problem_name = Select(
+        [p.name for p in GetAllProblems(target_path)],
+        target="problem",
+        on_new=InputNewProblemName,
+    )
+    problem_path = target_path / problem_name
+    return problem_path
 
 
-def CreateSolution(args) -> None:
-    UpdateContributor(CONTRIBUTORS_DIR / args.username)
-    UpdateProblem(args.problem_path)
-    UpdateUserDir(args.userdir_path)
+def AskProblemPath(problem_path: pl.Path) -> pl.Path:
+    if problem_path:
+        return problem_path
+    problem_name = SelectProblem(PROBLEMS_DIR)
+    problem_path = PROBLEMS_DIR / problem_name
+    return problem_path
+
+
+def AskUsername(username: str) -> str:
+    if username:
+        return username
+    username = SelectUsername()
+    return username
+
+
+def AskUserdir(userdir_path: pl.Path) -> pl.Path:
+    if userdir_path:
+        return userdir_path
+    username = AskUsername(None)
+    problem_path = AskProblemPath(None)
+    userdir_path = problem_path / username
+    return userdir_path
+
+
+def CreateLink(problem_path: pl.Path, persist: bool|None) -> None:
+    if persist is None:
+        persist = Confirm("Would you like to create link to the problem? ")
+    if not persist:
+        return
+    create_link.CreateLink(problem_path, None)
+
+
+def CreateSolution(userdir_path: pl.Path | None) -> None:
+    userdir_path = AskUserdir(userdir_path)
+    username = userdir_path.name
+    problem_path = userdir_path.parent
+    UpdateProblem(problem_path)
+    UpdateUserDir(userdir_path)
+    UpdateContributor(CONTRIBUTORS_DIR / username)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Get site html")
     parser.add_argument(
-        "--username",
-        "-u",
-        type=str,
-        help="Name of the contributor",
-        default=None,
-    )
-    parser.add_argument(
-        "--problem-name",
-        "-p",
-        type=str,
-        help="Name of the problem",
-        default=None,
-    )
-    parser.add_argument(
-        "--problem-path",
+        "--userdir-path",
         type=pl.Path,
         help="""
-            Path to the problem
-            (./problems/<problem_name>)
-            f.e. ./2_semester/1_contest/C""",
+            Path to the userdir
+            (./problems/<problem_name>/<username>)
+            """,
         default=None,
     )
-    parser.add_argument(
-        "--branch-name",
-        "-b",
-        type=str,
-        help="Git branch. All commited on this branch.",
-        default="dev",
-    )
+    parser.add_argument("--create-link", action="store_true", default=False)
 
     args: argparse.Namespace = parser.parse_args()
 
-    AskArgs(args)
-    CreateSolution(args)
+    userdir_path: pl.Path | None = args.userdir_path
+    link: bool = args.create_link
+
+    userdir_path = AskUserdir(userdir_path)
+    problem_path = userdir_path.parent
+
+    CreateSolution(userdir_path)
+    CreateLink(problem_path, link)
 
 
 if __name__ == "__main__":

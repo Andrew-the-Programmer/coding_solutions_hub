@@ -28,16 +28,21 @@ def ListDirRecursive(path: pl.Path) -> list[pl.Path]:
         yield p
 
 
-def GetAllProblems() -> list[pl.Path]:
-    return ListDir(PROBLEMS_DIR)
+def GetAllProblems(path: pl.Path = PROBLEMS_DIR) -> list[pl.Path]:
+    return ListDir(path)
 
 
 def GetContributors() -> list[str]:
     return [x.name for x in ListDir(CONTRIBUTORS_DIR)]
 
 
-def Semesters(path: pl.Path) -> list[pl.Path]:
-    dirs = ListDir(path)
+def Courses(path: pl.Path = REPO_DIR) -> list[pl.Path]:
+    courses = ["cpp", "algorithms"]
+    return [path / n for n in courses]
+
+
+def Semesters(course_path: pl.Path) -> list[pl.Path]:
+    dirs = ListDir(course_path)
     return [x for x in dirs if x.name.endswith(SEMESTER_POSTFIX)]
 
 
@@ -57,12 +62,11 @@ def UserDirs(problem_path: pl.Path) -> list[pl.Path]:
 
 
 def AllCourses() -> list[pl.Path]:
-    courses = ["cpp", "algorithms"]
-    return [REPO_DIR / course for course in courses]
+    return flatten(Courses(REPO_DIR))
 
 
 def AllSemesters() -> list[pl.Path]:
-    return flaten(Semesters(course) for course in AllCourses())
+    return flatten(Semesters(course) for course in AllCourses())
 
 
 def AllContests() -> list[pl.Path]:
@@ -84,3 +88,8 @@ def GetProblemId(problem_name: str) -> int:
 
 def GetAllProblemIds() -> list[int]:
     return sorted([GetProblemId(p.name) for p in GetAllProblems()])
+
+
+def GetUniqueProblemId() -> int:
+    ids = GetAllProblemIds()
+    return 0 if len(ids) == 0 else max(ids) + 1
