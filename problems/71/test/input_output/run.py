@@ -4,7 +4,7 @@ import argparse
 import pathlib as pl
 import subprocess
 
-from .constants import CASES_DIR, INPUT_FILE_NAME, OUTPUT_FILE_NAME
+from .constants import CASES_DIR, INPUT_FILE_NAME, OUTPUT_FILE_NAME, Here
 
 
 def GetCasePath(case_name: str) -> pl.Path:
@@ -24,12 +24,14 @@ def Run(
 ) -> subprocess.CompletedProcess:
     with input_file.open("r") as stdin, output_file.open("w") as stdout:
         return subprocess.run([executable], stdin=stdin, stdout=stdout)
+    # return subprocess.run([Here() / "run.sh", executable, input_file, output_file])
 
 
 def RunTest(*, case_path: pl.Path, executable: pl.Path) -> subprocess.CompletedProcess:
     input_file = GetInputFilePath(case_path)
     output_file = GetOutputFilePath(case_path)
-    e = Run(executable=executable, input_file=input_file, output_file=output_file)
+    e = Run(executable=executable, input_file=input_file,
+            output_file=output_file)
     if e.returncode != 0:
         print(f"Failed to run test {case_path.name}")
     return e
@@ -46,7 +48,8 @@ def main():
         help="Path to the output dir of the test",
         default=None,
     )
-    parser.add_argument("--case-name", type=str, help="Test name", default=None)
+    parser.add_argument("--case-name", type=str,
+                        help="Test name", default=None)
 
     args: argparse.Namespace = parser.parse_args()
 

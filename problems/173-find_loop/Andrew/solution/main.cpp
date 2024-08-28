@@ -7,20 +7,20 @@
 using NodeType = size_t;
 
 // Edge: oriented, not weighted
-struct EdgeO {
+struct Edge {
   NodeType from;
   NodeType to;
 
-  EdgeO() = default;
-  EdgeO(NodeType from, NodeType to) : from(from), to(to) {
+  Edge() = default;
+  Edge(NodeType from, NodeType to) : from(from), to(to) {
   }
 
-  friend auto& operator<<(std::ostream& stream, const EdgeO& edge) {
+  friend auto& operator<<(std::ostream& stream, const Edge& edge) {
     stream << edge.from << ' ' << edge.to;
     return stream;
   }
 
-  friend std::istream& operator>>(std::istream& stream, EdgeO& edge) {
+  friend std::istream& operator>>(std::istream& stream, Edge& edge) {
     stream >> edge.from >> edge.to;
     return stream;
   }
@@ -28,13 +28,13 @@ struct EdgeO {
 
 // Graph: oriented
 class GraphO {
-  using AdjListT = std::vector<std::vector<EdgeO>>;
+  using AdjListT = std::vector<std::vector<Edge>>;
 
  public:
   explicit GraphO(size_t n) : adj_list_(n) {
   }
 
-  void AddEdge(const EdgeO& edge) {
+  void AddEdge(const Edge& edge) {
     adj_list_[edge.from].emplace_back(edge);
   }
 
@@ -50,7 +50,7 @@ class GraphO {
   AdjListT adj_list_;
 };
 
-using E = EdgeO;
+using E = Edge;
 using G = GraphO;
 
 enum class Color { WHITE, GREY, BLACK };

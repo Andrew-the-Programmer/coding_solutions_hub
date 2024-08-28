@@ -81,7 +81,6 @@ void Solution2(const std::vector<size_t>& data) {
   size_t n = data.size();
   struct Tmp : public std::vector<size_t> {
     using Base = std::vector<size_t>;
-    // using Base::Base;
     using Base::at;
     explicit Tmp(size_t size) : Base(size) {
       for (size_t i = 0; i < size; ++i) {
