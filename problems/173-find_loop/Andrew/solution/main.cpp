@@ -55,8 +55,8 @@ using G = GraphO;
 
 enum class Color { WHITE, GREY, BLACK };
 
-auto DfsRecursive(const G& graph, std::vector<Color>& colors, std::vector<NodeType>& loop, NodeType cur)
-    -> std::optional<NodeType> {
+auto DfsRecursive(const G& graph, std::vector<Color>& colors, std::vector<NodeType>& loop,
+                  NodeType cur) -> std::optional<NodeType> {
   loop.push_back(cur);
   colors[cur] = Color::GREY;
   for (auto& edge : graph.GetEdges(cur)) {
