@@ -4,14 +4,7 @@ import argparse
 import pathlib as pl
 from typing import TextIO
 
-
-def Here() -> pl.Path:
-    return pl.Path(__file__).parent
-
-
-CASES_DIR = Here() / "cases"
-OUTPUT_FILE_NAME = "output.txt"
-CORRECT_OUTPUT_FILE_NAME = "correct_output.txt"
+from .constants import CASES_DIR, CORRECT_OUTPUT_FILE_NAME, OUTPUT_FILE_NAME
 
 
 def GetCasePath(case_name: str) -> pl.Path:
@@ -40,8 +33,7 @@ def Compare(f1: pl.Path, f2: pl.Path) -> bool:
 
 
 def Check(case_path: pl.Path) -> bool:
-    e = Compare(GetOutputFilePath(case_path),
-                GetCorrectOutputFilePath(case_path))
+    e = Compare(GetOutputFilePath(case_path), GetCorrectOutputFilePath(case_path))
     if not e:
         print(f"Test {case_path.name} failed")
     return e
@@ -50,10 +42,12 @@ def Check(case_path: pl.Path) -> bool:
 def main():
     parser = argparse.ArgumentParser(description="Check if test was passed")
     parser.add_argument(
-        "--case-dir", type=pl.Path, help="Path to the output dir of the test", default=None
+        "--case-dir",
+        type=pl.Path,
+        help="Path to the output dir of the test",
+        default=None,
     )
-    parser.add_argument("--case-name", type=str,
-                        help="Test name", default=None)
+    parser.add_argument("--case-name", type=str, help="Test name", default=None)
 
     args: argparse.Namespace = parser.parse_args()
 
