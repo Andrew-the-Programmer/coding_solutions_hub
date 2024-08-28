@@ -24,22 +24,22 @@ local term_execute = My.toggleterm.execute.term_execute
 -- execute_cmd("ls")
 
 function Configure()
-    local cmd = "./other/configure.sh"
+    local cmd = "./other/cpp/configure.*"
     execute_cmd(cmd)
 end
 
 function Build()
-    local cmd = "./other/build.sh"
+    local cmd = "./other/cpp/build.*"
     execute_cmd(cmd)
 end
 
 function Run()
-    local cmd = "./other/run.sh"
+    local cmd = "./other/cpp/run.*"
     execute_cmd(cmd)
 end
 
 function Test()
-    local cmd = "./other/test.sh"
+    local cmd = "./other/test.*"
     execute_cmd(cmd)
 end
 
