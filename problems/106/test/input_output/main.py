@@ -1,21 +1,13 @@
 #!/usr/bin/env python3
 
 import argparse
-import os
 import pathlib as pl
 import subprocess
+import sys
 
-from .check import Check
-from .run import RunTest
-from .constants import CASES_DIR
-
-
-def GetCasePath(case_name: str) -> pl.Path:
-    return CASES_DIR / case_name
-
-
-def ListCases() -> list[pl.Path]:
-    return sorted([x for x in CASES_DIR.iterdir() if x.is_dir()])
+from input_output.check import Check
+from input_output.constants import IsExecutable, ListCases
+from input_output.run import RunTest
 
 
 def TestCaseBeginMsg(case_name: str) -> None:
@@ -31,9 +23,9 @@ def TestCase(case_path: pl.Path, executable: pl.Path) -> subprocess.CompletedPro
 
 
 def Test(executable: pl.Path) -> None:
-    if not executable.is_file() or not os.access(executable, os.X_OK):
+    if executable is None or not IsExecutable(executable):
         print(f"Executable '{executable}' don't exist or is not executable")
-        exit(1)
+        sys.exit(1)
     for case_path in ListCases():
         TestCase(case_path, executable)
 
@@ -49,7 +41,7 @@ def main():
 
     if executable is None:
         print("Executable not specified")
-        exit(1)
+        sys.exit(1)
 
     Test(executable)
 

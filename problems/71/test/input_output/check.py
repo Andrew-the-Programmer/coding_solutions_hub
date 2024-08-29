@@ -3,30 +3,23 @@
 import pathlib as pl
 import subprocess
 
-from input_output.constants import (CASES_DIR, CHECKER,
-                                    CORRECT_OUTPUT_FILE_NAME, OUTPUT_FILE_NAME)
-
-
-def GetCasePath(case_name: str) -> pl.Path:
-    return CASES_DIR / case_name
-
-
-def GetOutputFilePath(case_path: pl.Path) -> pl.Path:
-    return case_path / OUTPUT_FILE_NAME
-
-
-def GetCorrectOutputFilePath(case_path: pl.Path) -> pl.Path:
-    return case_path / CORRECT_OUTPUT_FILE_NAME
+from input_output.constants import (CHECKER, GetCorrectOutputFilePath,
+                                    GetInputFilePath, GetOutputFilePath)
 
 
 def Check(case_path: pl.Path) -> bool:
+    input_path = GetInputFilePath(case_path)
+    output_path = GetOutputFilePath(case_path)
+    correct_output = GetCorrectOutputFilePath(case_path)
     e = subprocess.run(
         [
             CHECKER,
+            "--input",
+            input_path,
             "--output",
-            GetOutputFilePath(case_path),
+            output_path,
             "--correct-output",
-            GetCorrectOutputFilePath(case_path),
+            correct_output,
         ],
         check=False,
     )
