@@ -10,22 +10,8 @@ def GetWords(f: TextIO) -> list[str]:
     return f.read().split()
 
 
-def GetSets(words: list[str]) -> set[str]:
-    n = int(words.pop(0))
-    sets = set(frozenset())
-    for _ in range(n):
-        m = int(words.pop(0))
-        subset = frozenset(words.pop(0) for _ in range(m))
-        sets.add(subset)
-    return sets
-
-
 def CompareOutputs(output1: TextIO, output2: TextIO) -> bool:
-    words1 = GetWords(output1)
-    words2 = GetWords(output2)
-    sets1 = GetSets(words1)
-    sets2 = GetSets(words2)
-    return sets1 == sets2
+    return GetWords(output1) == GetWords(output2)
 
 
 def Compare(f1: pl.Path, f2: pl.Path) -> bool:
