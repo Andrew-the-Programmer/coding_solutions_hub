@@ -7,16 +7,10 @@ import subprocess
 
 import sys
 from input_output.check import Check
-from input_output.constants import CASES_DIR
+from input_output.constants import CASES_DIR, GetCasePath, ListCases
 from input_output.run import RunTest
 
 
-def GetCasePath(case_name: str) -> pl.Path:
-    return CASES_DIR / case_name
-
-
-def ListCases() -> list[pl.Path]:
-    return sorted([x for x in CASES_DIR.iterdir() if x.is_dir()])
 
 
 def TestCaseBeginMsg(case_name: str) -> None:

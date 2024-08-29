@@ -23,7 +23,12 @@ If you need a complex checker, you can set `CHECKER` in contants.py.
 >By default `CHECKER = basic_checker.py`.
 basic_checker.py stores all words from given files and compares them one by one.
 
-`CHECKER` has to be an executable file which takes two arguments:
---output and --correct-output (see basic_checker.py --help for more info).
+`CHECKER` has to be an executable file which takes three arguments:
+1. --input
+2. --output
+3. --correct-output
+(see basic_checker.py --help for more info).
+>Note that for some problems all three are important, for some - none, but
+all have to be able to get these arguments.
 
 You can always see the source code for better understanding.

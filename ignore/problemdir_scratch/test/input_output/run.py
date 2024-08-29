@@ -3,15 +3,7 @@
 import pathlib as pl
 import subprocess
 
-from input_output.constants import INPUT_FILE_NAME, OUTPUT_FILE_NAME
-
-
-def GetOutputFilePath(case_path: pl.Path) -> pl.Path:
-    return case_path / OUTPUT_FILE_NAME
-
-
-def GetInputFilePath(case_path: pl.Path) -> pl.Path:
-    return case_path / INPUT_FILE_NAME
+from input_output.constants import GetInputFilePath, GetOutputFilePath
 
 
 def Run(
