@@ -23,6 +23,6 @@ def Check(case_path: pl.Path) -> bool:
         ],
         check=False,
     )
-    if not e:
+    if e.returncode != 0:
         print(f"Test {case_path.name} failed")
     return e
