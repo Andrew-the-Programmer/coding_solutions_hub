@@ -1,20 +1,26 @@
 # Table of Contents
 
+<!-- toc -->
+
 - [Introduction](#introduction)
 - [Features](#features)
 - [Notations](#notations)
 - [Usage](#usage)
+  - [Build, run, test and more!](#build-run-test-and-more)
+  - [Tasks](#tasks)
 - [Contribute](#contribute)
-    - [Solution](#solution)
-    - [Functionality](#functionality)
-    - [Tests](#tests)
-    - [Documentation](#documentation)
+  - [Solution](#solution)
+  - [Tests](#tests)
+  - [Functionality](#functionality)
+  - [Documentation](#documentation)
 - [Other notes](#other-notes)
+
+<!-- tocstop -->
 
 # Introduction
 
 Hello :3\
-I currently study in MIPT-fpmi.
+I study in MIPT-fpmi.
 This is my algorithms homework.
 
 # Features
@@ -30,9 +36,9 @@ This is my algorithms homework.
 For clarity please mind these notations:
 
 - `problemdir = ./<semester>/<contest>/<problem>`\
-Directory for the problem.
+  Directory for the problem.
 - `userdir = problemdir/<username>`\
-Directory for the user solution.
+  Directory for the user solution.
 
 > It may not make sense rn, but I hope it will eventually, hopefully.
 
@@ -43,7 +49,7 @@ Directory for the user solution.
 See [userdir](#notations)/other for useful programs.
 They are written by me and can be used by you.
 Make sure that they are suitable for your needs.\
- Programs that you can find in [userdir](#notations)/other:
+Programs that you can find in [userdir](#notations)/other:
 
 - [configure.py](ignore/solution_scratch/other/configure.py)\
   Build your solution with cmake. See [userdir](#notations)/CMakeLists.txt for more info.
@@ -69,18 +75,20 @@ See [Functionality](#functionality) for more info.\
 See [Usage-Tasks](#tasks) to effectively use all this functionality.
 
 ## Tasks
->Tasks are a way to automate certain actions or workflows that you
-frequently perform in your development process.\
-See for more info:
-[vscode-tasks](https://code.visualstudio.com/docs/editor/tasks),
-[neovim-overseer](https://github.com/stevearc/overseer.nvim)
+
+> Tasks are a way to automate certain actions or workflows that you
+> frequently perform in your development process.\
+> See for more info:
+> [vscode-tasks](https://code.visualstudio.com/docs/editor/tasks),
+> [neovim-overseer](https://github.com/stevearc/overseer.nvim)
 
 You can find VsCode tasks in [.vscode](.vscode) and
 Neovim-Overseer tasks in [nvim/overseer.lua](nvim/overseer.lua).
->Most likely my nvim tasks wont work for you.
-They heavily rely on my nvim config. You can find it
-[here](https://github.com/Andrew-the-Programmer/.dotfiles/tree/main/nvim).
-Probably all vscode tasks are bad, I used them a while ago.
+
+> Most likely my nvim tasks wont work for you.
+> They heavily rely on my nvim config. You can find it
+> [here](https://github.com/Andrew-the-Programmer/.dotfiles/tree/main/nvim).
+> Probably all vscode tasks are bad, I used them a while ago.
 
 # Contribute
 
@@ -107,7 +115,7 @@ git switch -c <branch-name>
 
 - Program will create specific folder for your solution.
   It can be found in [userdir](#notations) folder.\
-   Put your solution in [userdir](#notations)/solution folder.
+  Put your solution in [userdir](#notations)/solution folder.
 - Push your branch to origin. Add me as a reviewer.
 
 ```bash
@@ -126,15 +134,15 @@ for more info.
 After that create MR from a new branch.
 
 > Public tests can also be found in
-[cpp_psami_base_2023](https://gitlab.com/ibr11/cpp_psami_base_2023).
-I will try to integrate their tests in
-[ignore/problem_scratch/tests/backend](ignore/problem_scratch/tests/backend).
-Right now it's not working.
+> [cpp_psami_base_2023](https://gitlab.com/ibr11/cpp_psami_base_2023).
+> I will try to integrate their tests in
+> [ignore/problem_scratch/tests/backend](ignore/problem_scratch/tests/backend).
+> Right now it's not working.
 
 ## Functionality
 
 After running [create_solution.py](create_solution.py) usefull files will be copied to
-[problemdir](#notations) and [userdir](#notations) from 
+[problemdir](#notations) and [userdir](#notations) from
 [ignore/problem_scratch](ignore/problem_scratch)
 and [ignore/solution_scratch](ignore/solution_scratch).
 You can modify them and add something new there if you want.
