@@ -4,13 +4,8 @@ import itertools
 import pathlib as pl
 import re
 
-from constants import (
-    CONTEST_POSTFIX,
-    CONTRIBUTORS_DIR,
-    PROBLEMS_DIR,
-    REPO_DIR,
-    SEMESTER_POSTFIX,
-)
+from constants import (CONTEST_POSTFIX, CONTRIBUTORS_DIR, PROBLEMS_DIR,
+                       REPO_DIR, SEMESTER_POSTFIX)
 
 DESCRIPTIONS_DIR_NAME = "_DESCRIPTIONS_"
 

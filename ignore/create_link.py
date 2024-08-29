@@ -3,18 +3,8 @@
 import argparse
 import pathlib as pl
 
-from constants import (
-    CONTEST_POSTFIX,
-    PROBLEMS_DIR,
-    REPO_DIR,
-    SEMESTER_POSTFIX,
-)
-from iterate_project import (
-    Contests,
-    Courses,
-    GetAllProblems,
-    Semesters,
-)
+from constants import CONTEST_POSTFIX, PROBLEMS_DIR, REPO_DIR, SEMESTER_POSTFIX
+from iterate_project import Contests, Courses, GetAllProblems, Semesters
 from my_select import Select
 from os_functions import Link, RelativePath
 
