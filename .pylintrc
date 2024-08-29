@@ -1,0 +1,11 @@
+[MAIN]
+
+[MESSAGES CONTROL]
+
+disable=
+    # handled by black
+    format,
+    invalid-name,
+    missing-docstring,
+    missing-function-docstring,
+    import-error,
