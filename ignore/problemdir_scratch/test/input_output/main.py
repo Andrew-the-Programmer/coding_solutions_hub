@@ -5,9 +5,10 @@ import os
 import pathlib as pl
 import subprocess
 
-from .check import Check
-from .run import RunTest
-from .constants import CASES_DIR
+import sys
+from input_output.check import Check
+from input_output.constants import CASES_DIR
+from input_output.run import RunTest
 
 
 def GetCasePath(case_name: str) -> pl.Path:
@@ -31,9 +32,13 @@ def TestCase(case_path: pl.Path, executable: pl.Path) -> subprocess.CompletedPro
 
 
 def Test(executable: pl.Path) -> None:
-    if not executable.is_file() or not os.access(executable, os.X_OK):
+    if (
+        executable is None
+        or not executable.is_file()
+        or not os.access(executable, os.X_OK)
+    ):
         print(f"Executable '{executable}' don't exist or is not executable")
-        exit(1)
+        sys.exit(1)
     for case_path in ListCases():
         TestCase(case_path, executable)
 
@@ -49,7 +54,7 @@ def main():
 
     if executable is None:
         print("Executable not specified")
-        exit(1)
+        sys.exit(1)
 
     Test(executable)
 
