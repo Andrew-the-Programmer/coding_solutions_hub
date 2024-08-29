@@ -1,5 +1,6 @@
 // Copyright 2024 Andrew
 
+#include <algorithm>
 #include <cstddef>
 #include <iostream>
 #include <vector>
@@ -85,6 +86,7 @@ void Solution(const G& graph) {
   for (size_t i = 0; i < n; ++i) {
     groups[colors[i]].emplace_back(i);
   }
+  // std::reverse(groups.begin(), groups.end());
   for (auto& group : groups) {
     if (group.empty()) {
       continue;
