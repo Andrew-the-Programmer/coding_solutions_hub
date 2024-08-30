@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <iostream>
 #include <iomanip>
 #include <string>
@@ -183,13 +184,14 @@ struct Polygon : std::vector<Point<T>>, IOutputClass {
   }
 
   auto Surface() {
-    using S = double;
-    S surface = 0;
-    for (size_t i = 0; i < this->size() - 1; ++i) {
-      surface += static_cast<S>(Vector<T>(this->at(i)).Cross(this->at(i + 1)));
+    auto n = this->size();
+    int64_t surface = 0;
+    for (size_t i = 0; i < n - 1; ++i) {
+      surface += Vector<T>(this->at(i)).Cross(this->at(i + 1));
     }
-    surface += static_cast<S>(Vector<T>(this->back()).Cross(this->front()));
-    return std::abs(surface) / 2;
+    surface += Vector<T>(this->back()).Cross(this->front());
+    surface = std::abs(surface);
+    std::cout << surface / 2 << (surface % 2 == 0 ? ".0" : ".5");
   }
 };
 
@@ -227,7 +229,6 @@ Polygon<T> FindConvexHullGrahamAlgorithm(Polygon<T>& polygon) {
   SortPoligonByAngles(polygon);
   for (size_t cur_point_index = 0; cur_point_index < polygon.size(); ++cur_point_index) {
     auto curr = polygon.at(cur_point_index);
-
     while (true) {
       if (result.size() <= 1) {
         if (result.size() == 1 && result.front() == curr) {
@@ -254,7 +255,16 @@ Polygon<T> FindConvexHullGrahamAlgorithm(Polygon<T>& polygon) {
   return result;
 }
 
+void SetIostream() {
+  std::ios_base::sync_with_stdio(false);
+  std::cin.tie(nullptr);
+  std::cout.tie(nullptr);
+  std::cout.setf(std::ios::fixed);
+  std::cout.precision(10);
+}
+
 int main() {
+  SetIostream();
   using T = int64_t;
 
   std::cout << std::fixed << std::setprecision(1);
@@ -263,5 +273,8 @@ int main() {
   Input(polygon, InputResult<size_t>());
 
   auto hull = FindConvexHullGrahamAlgorithm(polygon);
-  std::cout << hull.size() << '\n' << hull << '\n' << hull.Surface() << '\n';
+
+  std::cout << hull.size() << '\n';
+  std::cout << hull << '\n';
+  hull.Surface();
 }
