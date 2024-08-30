@@ -35,16 +35,6 @@ T InputResult(IStream& stream = std::cin) {
   return value;
 }
 
-/*
-template <std::output_iterator Iter, class IStream = std::istream>
-void InputRangeN(Iter& begin, size_t n, IStream& stream = std::cin) {
-  for (size_t i = 0; i < n; ++i) {
-        stream >> *begin;
-        ++begin;
-  }
-}
-*/
-
 namespace geometry {
 
 using namespace std::literals;
@@ -64,32 +54,10 @@ template <class T>
 struct Polygon;
 
 // ishape.h
-
-template <class T>
-struct IShape {
-  using PointType = Point<T>;
-  using VectorType = Vector<T>;
-  using SegmentType = Segment<T>;
-
-  virtual ~IShape() = default;
-
-  virtual IShape& Move(const VectorType&) = 0;
-  virtual bool ContainsPoint(const PointType&) const = 0;
-  virtual bool CrossesSegment(const SegmentType&) const = 0;
-  virtual std::shared_ptr<IShape> Clone() const = 0;
-  virtual std::string ToString() const = 0;
-
-  friend std::ostream& operator<<(std::ostream& stream, const IShape& shape) {
-    stream << shape.ToString();
-    return stream;
-  }
-};
-
 // point.h
 template <class T>
-struct Point : public IShape<T> {
+struct Point {
  public:
-  using IShapeType = IShape<T>;
   using VectorType = Vector<T>;
   using SegmentType = Segment<T>;
 
@@ -98,24 +66,15 @@ struct Point : public IShape<T> {
 
   Point(const T& x, const T& y);
 
-  Point& Move(const VectorType&) override;
+  bool ContainsPoint(const Point&) const;
 
-  bool ContainsPoint(const Point&) const override;
-
-  bool CrossesSegment(const SegmentType&) const override;
-
-  std::shared_ptr<IShapeType> Clone() const override;
-
-  std::string ToString() const override;
+  bool CrossesSegment(const SegmentType&) const;
 
   VectorType operator-(const Point&) const;
 
   bool operator==(const Point&) const;
 
   bool operator!=(const Point&) const;
-
-  template <class TT>
-  friend std::istream& operator>>(std::istream&, Point<TT>&);
 
  public:
   T x;
@@ -124,11 +83,6 @@ struct Point : public IShape<T> {
 
 template <class T>
 T SquaredDistance(const Point<T>&, const Point<T>&);
-
-template <class T>
-double Distance(const Point<T>&, const Point<T>&);
-
-// vector.h
 
 template <class T>
 struct Vector {
@@ -151,17 +105,13 @@ struct Vector {
 
   T SquaredLength() const;
 
-  double Length() const;
+  static T Dot(const Vector&, const Vector&);
 
-  static T ScalarProduct(const Vector&, const Vector&);
-
-  static T SignedArea(const Vector&, const Vector&);
+  static T Cross(const Vector&, const Vector&);
 
   static bool Parallel(const Vector&, const Vector&);
 
   bool PointsTo(const PointType&) const;
-
-  static double Sin(const Vector&, const Vector&);
 
   T VectorProduct(const Vector&) const;
 
@@ -176,20 +126,11 @@ struct Vector {
   Vector operator-() const;
 
   bool operator==(const Vector&) const;
-
-  std::string ToString() const;
-
-  template <class TT>
-  friend std::ostream& operator<<(std::ostream&, const Vector<TT>&);
-
-  template <class TT>
-  friend std::istream& operator>>(std::istream&, Vector<TT>&);
 };
 
 // segment.h
 template <class T>
-struct Segment : public IShape<T> {
-  using IShapeType = IShape<T>;
+struct Segment {
   using PointType = Point<T>;
   using VectorType = Vector<T>;
   using LineType = Line<T>;
@@ -215,27 +156,14 @@ struct Segment : public IShape<T> {
   static bool OverlapOnSameLine(const Segment&, const Segment&);
 
  public:
-  IShapeType& Move(const VectorType&) override;
+  bool ContainsPoint(const PointType&) const;
 
-  bool ContainsPoint(const PointType&) const override;
-
-  bool CrossesSegment(const Segment&) const override;
-
-  std::shared_ptr<IShapeType> Clone() const override;
-
-  std::string ToString() const override;
-
-  template <class TT>
-  friend std::istream& operator>>(std::istream&, Segment<TT>&);
+  bool CrossesSegment(const Segment&) const;
 };
-
-template <class T>
-double Distance(const Point<T>&, const Segment<T>&);
 
 // ray.h
 template <class T>
-struct Ray : public IShape<T> {
-  using IShapeType = IShape<T>;
+struct Ray {
   using PointType = Point<T>;
   using VectorType = Vector<T>;
   using LineType = Line<T>;
@@ -258,27 +186,17 @@ struct Ray : public IShape<T> {
 
   bool IsDefined() const;
 
-  IShapeType& Move(const VectorType&) override;
+  bool ContainsPoint(const PointType&) const;
 
-  bool ContainsPoint(const PointType&) const override;
-
-  bool CrossesSegment(const SegmentType&) const override;
-
-  std::shared_ptr<IShapeType> Clone() const override;
-
-  std::string ToString() const override;
+  bool CrossesSegment(const SegmentType&) const;
 
   bool PointsTo(const PointType&) const;
-
-  template <class TT>
-  friend std::istream& operator>>(std::istream&, Ray<TT>&);
 };
 
 // line.h
 template <class T>
-struct Line : public IShape<T> {
+struct Line {
  public:
-  using IShapeType = IShape<T>;
   using PointType = Point<T>;
   using VectorType = Vector<T>;
   using LineType = Line<T>;
@@ -315,13 +233,9 @@ struct Line : public IShape<T> {
 
   bool IsDefined() const;
 
-  IShapeType& Move(const VectorType&) override;
+  bool ContainsPoint(const PointType&) const;
 
-  bool ContainsPoint(const PointType&) const override;
-
-  bool CrossesSegment(const SegmentType&) const override;
-
-  std::shared_ptr<IShapeType> Clone() const override;
+  bool CrossesSegment(const SegmentType&) const;
 
   const VectorType& GetDirectingVector() const;
 
@@ -335,81 +249,17 @@ struct Line : public IShape<T> {
 
   void SetPoint(const PointType&);
 
-  // return (a,b,c): ax + by + c = 0
-  auto GetPolynomialReprArgs() const;
-
-  std::string PolynomialRepr() const;
-
-  std::string PointAndVectorRepr() const;
-
-  std::string ToString() const override;
-
   static bool Parallel(const Line& first, const Line& second);
-
-  template <class R = T>
-  void InputAsPolynom(std::istream& stream);
-
-  void InputAsPointAndVector(std::istream& stream);
-
-  template <class TT>
-  friend std::istream& operator>>(std::istream& stream, Line<TT>& line);
 
  public:
   PointType point = PointType();
   VectorType directing_vector = VectorType();
 };
 
-// circle.h
-template <class T, class R = T>
-struct Circle : public IShape<T> {
- public:
-  using IShapeType = IShape<T>;
-  using PointType = Point<T>;
-  using VectorType = Vector<T>;
-  using LineType = Line<T>;
-  using SegmentType = Segment<T>;
-  using RayType = Ray<T>;
-  using RadiusType = R;
-
- public:
-  Circle() = default;
-
-  Circle(const RadiusType&, const PointType&);
-
-  Circle(const PointType&, const RadiusType&);
-
-  Circle(const Circle&) = default;
-
- protected:
-  template <typename Cmp>
-  bool CompareDistanceToPointAndRadius(const PointType&, const Cmp& cmp = Cmp()) const;
-
- public:
-  IShapeType& Move(const VectorType&) override;
-
-  bool ContainsPoint(const PointType&) const override;
-
-  bool StrictlyContainsPoint(const PointType&) const;
-
-  bool CrossesSegment(const SegmentType&) const override;
-
-  std::shared_ptr<IShapeType> Clone() const override;
-
-  std::string ToString() const override;
-
-  template <class TT>
-  friend std::istream& operator>>(std::istream&, Circle<TT>&);
-
- public:
-  RadiusType radius = 0;
-  PointType center = PointType();
-};
-
 // polygon.h
 template <class T>
-struct Polygon : public IShape<T> {
+struct Polygon {
  public:
-  using IShapeType = IShape<T>;
   using PointType = Point<T>;
   using VectorType = Vector<T>;
   using LineType = Line<T>;
@@ -426,18 +276,9 @@ struct Polygon : public IShape<T> {
 
   auto Segments() const;
 
-  IShapeType& Move(const VectorType&) override;
+  bool ContainsPoint(const PointType&) const;
 
-  bool ContainsPoint(const PointType&) const override;
-
-  bool CrossesSegment(const SegmentType&) const override;
-
-  std::shared_ptr<IShapeType> Clone() const override;
-
-  std::string ToString() const override;
-
-  template <class TT>
-  friend std::istream& operator>>(std::istream&, Polygon<TT>&);
+  bool CrossesSegment(const SegmentType&) const;
 
  public:
   std::vector<PointType> points;
@@ -449,28 +290,8 @@ Point<T>::Point(const T& x, const T& y) : x(x), y(y) {
 }
 
 template <class T>
-Point<T>& Point<T>::Move(const VectorType& vector) {
-  x += vector.x;
-  y += vector.y;
-  return *this;
-}
-
-template <class T>
 bool Point<T>::ContainsPoint(const Point<T>& other) const {
   return (*this) == other;
-}
-
-template <class T>
-std::shared_ptr<IShape<T>> Point<T>::Clone() const {
-  return std::make_shared<Point>(x, y);
-}
-
-template <class T>
-std::string Point<T>::ToString() const {
-  // return (boost::format("Point(%1%, %2%)") % x % y).str();
-  std::stringstream ss;
-  ss << "Point(" << x << ", " << y << ")";
-  return ss.str();
 }
 
 template <class T>
@@ -499,11 +320,6 @@ T SquaredDistance(const Point<T>& first, const Point<T>& second) {
   return Vector(first, second).SquaredLength();
 }
 
-template <class T>
-double Distance(const Point<T>& first, const Point<T>& second) {
-  return Vector(first, second).Length();
-}
-
 // vector.cpp
 template <class T>
 Vector<T>::Vector(const T& x, const T& y) : x(x), y(y) {
@@ -529,21 +345,16 @@ bool Vector<T>::IsZero() const {
 
 template <class T>
 T Vector<T>::SquaredLength() const {
-  return ScalarProduct(*this, *this);
+  return Dot(*this, *this);
 }
 
 template <class T>
-double Vector<T>::Length() const {
-  return std::sqrt(SquaredLength());
-}
-
-template <class T>
-T Vector<T>::ScalarProduct(const Vector& first, const Vector& second) {
+T Vector<T>::Dot(const Vector& first, const Vector& second) {
   return first.x * second.x + first.y * second.y;
 }
 
 template <class T>
-T Vector<T>::SignedArea(const Vector& first, const Vector& second) {
+T Vector<T>::Cross(const Vector& first, const Vector& second) {
   return first.x * second.y - first.y * second.x;
 }
 
@@ -552,7 +363,7 @@ bool Vector<T>::Parallel(const Vector& first, const Vector& second) {
   if (first.IsZero() || second.IsZero()) {
     throw std::logic_error("Method 'Vector::Parallel' for zero-vector is undefined.");
   }
-  return SignedArea(first, second) == 0;
+  return Cross(first, second) == 0;
 }
 
 template <class T>
@@ -560,17 +371,12 @@ bool Vector<T>::PointsTo(const PointType& point) const {
   if (this->IsZero()) {
     throw std::logic_error("Method 'Vector::PointsTo' for zero-vector is undefined.");
   }
-  return ScalarProduct(Vector(point), *this) >= 0;
-}
-
-template <class T>
-double Vector<T>::Sin(const Vector& first, const Vector& second) {
-  return static_cast<double>(SignedArea(first, second)) / (first.Length() * second.Length());
+  return Dot(Vector(point), *this) >= 0;
 }
 
 template <class T>
 T Vector<T>::VectorProduct(const Vector& other) const {
-  return SignedArea(*this, other);
+  return Cross(*this, other);
 }
 
 template <class T>
@@ -611,26 +417,6 @@ bool Vector<T>::operator==(const Vector& other) const {
   return x == other.x && y == other.y;
 }
 
-template <class T>
-std::string Vector<T>::ToString() const {
-  // return (boost::format("Vector(%1%, %2%)") % x % y).str();
-  std::stringstream ss;
-  ss << "Vector(" << x << ", " << y << ")";
-  return ss.str();
-}
-
-template <class T>
-std::ostream& operator<<(std::ostream& stream, const Vector<T>& vector) {
-  stream << vector.ToString();
-  return stream;
-}
-
-template <class T>
-std::istream& operator>>(std::istream& stream, Vector<T>& vector) {
-  stream >> vector.x >> vector.y;
-  return stream;
-}
-
 // segment.cpp
 template <class T>
 bool Point<T>::CrossesSegment(const Segment<T>& segment) const {
@@ -666,7 +452,7 @@ bool Segment<T>::IsPoint() const {
 template <class T>
 bool Segment<T>::ContainsPointOnSameLine(const PointType& point) const {
   auto vec = VectorType(first_point, point);
-  auto prod = VectorType::ScalarProduct(vec, VectorType(first_point, second_point));
+  auto prod = VectorType::Dot(vec, VectorType(first_point, second_point));
   return 0 <= prod && prod <= SquaredLength();
 }
 
@@ -676,13 +462,6 @@ template <class T>
 bool Segment<T>::OverlapOnSameLine(const Segment& first_segment, const Segment& second_segment) {
   return first_segment.ContainsPointOnSameLine(second_segment.first_point) ||
          first_segment.ContainsPointOnSameLine(second_segment.second_point);
-}
-
-template <class T>
-typename Segment<T>::IShapeType& Segment<T>::Move(const Vector<T>& vector) {
-  first_point.Move(vector);
-  second_point.Move(vector);
-  return *this;
 }
 
 template <class T>
@@ -714,41 +493,9 @@ bool Segment<T>::CrossesSegment(const Segment& segment) const {
 }
 
 template <class T>
-std::shared_ptr<typename Segment<T>::IShapeType> Segment<T>::Clone() const {
-  return std::make_shared<Segment>(first_point, second_point);
-}
-
-template <class T>
-std::string Segment<T>::ToString() const {
-  // return (boost::format("Segment(%1%, %2%)") % first_point % second_point).str();
-  std::stringstream ss;
-  ss << "Segment(" << first_point << ", " << second_point << ")";
-  return ss.str();
-}
-
-template <class T>
 std::istream& operator>>(std::istream& stream, Segment<T>& section) {
   stream >> section.first_point >> section.second_point;
   return stream;
-}
-
-template <class T>
-double Distance(const Point<T>& point, const Segment<T>& segment) {
-  if (segment.IsPoint()) {
-    return Distance(point, segment.first_point);
-  }
-  auto section_vector = segment.GetDirectingVector();
-  auto ray1 = Ray<T>(segment.second_point, section_vector);
-  if (ray1.PointsTo(point)) {
-    return Vector<T>(segment.second_point, point).Length();
-  }
-  auto ray2 = Ray<T>(segment.first_point, -section_vector);
-  if (ray2.PointsTo(point)) {
-    return Vector<T>(segment.first_point, point).Length();
-  }
-  auto vec_first_point = Vector<T>(segment.first_point, point);
-  auto sin_angle = std::abs(Vector<T>::Sin(section_vector, vec_first_point));
-  return sin_angle * vec_first_point.Length();
 }
 
 // ray.cpp
@@ -783,12 +530,6 @@ bool Ray<T>::IsDefined() const {
 }
 
 template <class T>
-typename Ray<T>::IShapeType& Ray<T>::Move(const Vector<T>& vector) {
-  start_point.Move(vector);
-  return *this;
-}
-
-template <class T>
 bool Ray<T>::ContainsPoint(const PointType& point) const {
   if (this->IsUndefined()) {
     throw std::logic_error("Ray::ContainsPoint(): ray is undefined.");
@@ -808,24 +549,11 @@ bool Ray<T>::CrossesSegment(const SegmentType& segment) const {
   VectorType a(start_point, segment.first_point);
   VectorType b(start_point, segment.second_point);
   VectorType c = directing_vector;
-  auto vp_ac = VectorType::SignedArea(a, c);
-  auto vp_bc = VectorType::SignedArea(b, c);
-  auto sp_bc = VectorType::ScalarProduct(b, c);
-  auto sp_ac = VectorType::ScalarProduct(a, c);
+  auto vp_ac = VectorType::Cross(a, c);
+  auto vp_bc = VectorType::Cross(b, c);
+  auto sp_bc = VectorType::Dot(b, c);
+  auto sp_ac = VectorType::Dot(a, c);
   return std::abs(vp_ac) * sp_bc + std::abs(vp_bc) * sp_ac >= 0;
-}
-
-template <class T>
-std::shared_ptr<typename Ray<T>::IShapeType> Ray<T>::Clone() const {
-  return std::make_shared<Ray>(start_point, directing_vector);
-}
-
-template <class T>
-std::string Ray<T>::ToString() const {
-  // return (boost::format("Ray(%1%, %2%)") % start_point % directing_vector).str();
-  std::stringstream ss;
-  ss << "Ray(" << start_point << ", " << directing_vector << ")";
-  return ss.str();
 }
 
 template <class T>
@@ -887,12 +615,6 @@ bool Line<T>::IsDefined() const {
 }
 
 template <class T>
-typename Line<T>::IShapeType& Line<T>::Move(const VectorType& vector) {
-  point.Move(vector);
-  return *this;
-}
-
-template <class T>
 bool Line<T>::ContainsPoint(const PointType& p) const {
   if (this->IsUndefined()) {
     throw std::logic_error("Line::ContainsPoint: Line is undefined.");
@@ -915,14 +637,9 @@ bool Line<T>::CrossesSegment(const SegmentType& segment) const {
   // else: line crosses segment.
   VectorType to_first(GetPoint(), segment.first_point);
   VectorType to_second(GetPoint(), segment.second_point);
-  auto first_point_info = VectorType::SignedArea(to_first, GetDirectingVector());
-  auto second_point_info = VectorType::SignedArea(to_second, GetDirectingVector());
+  auto first_point_info = VectorType::Cross(to_first, GetDirectingVector());
+  auto second_point_info = VectorType::Cross(to_second, GetDirectingVector());
   return first_point_info * second_point_info <= 0;
-}
-
-template <class T>
-std::shared_ptr<typename Line<T>::IShapeType> Line<T>::Clone() const {
-  return std::make_shared<Line>(*this);
 }
 
 template <class T>
@@ -955,134 +672,12 @@ void Line<T>::SetPoint(const PointType& point) {
   this->point = point;
 }
 
-// return (a,b,c): ax + by + c = 0
-template <class T>
-auto Line<T>::GetPolynomialReprArgs() const {
-  auto a = GetDirectingVector().y;
-  auto b = -GetDirectingVector().x;
-  auto c = -(a * GetPoint().x + b * GetPoint().y);
-  return std::make_tuple(a, b, c);
-}
-
-template <class T>
-std::string Line<T>::PolynomialRepr() const {
-  auto args = GetPolynomialReprArgs();
-  // return (boost::format("Line(%1%, %2%, %3%)") % std::get<0>(args) %
-  // std::get<1>(args) % std::get<2>(args)).str();
-  std::stringstream ss;
-  ss << "Line(" << std::get<0>(args) << ", " << std::get<1>(args) << ", " << std::get<2>(args) << ")";
-  return ss.str();
-}
-
-template <class T>
-std::string Line<T>::PointAndVectorRepr() const {
-  // return (boost::format("Line(%1%, %2%)") % GetPoint() %
-  // GetDirectingVector()).str();
-  std::stringstream ss;
-  ss << "Line(" << GetPoint() << ", " << GetDirectingVector() << ")";
-  return ss.str();
-}
-
-template <class T>
-std::string Line<T>::ToString() const {
-  return PolynomialRepr();
-}
-
 template <class T>
 bool Line<T>::Parallel(const Line& first, const Line& second) {
   if (first.IsUndefined() || second.IsUndefined()) {
     throw std::logic_error("Method 'Line::Parallel' for undefined lines is undefined.");
   }
   return VectorType::Parallel(first.GetDirectingVector(), second.GetDirectingVector());
-}
-
-template <class T>
-template <class R>
-void Line<T>::InputAsPolynom(std::istream& stream) {
-  R a;
-  R b;
-  R c;
-  stream >> a >> b >> c;
-  *this = Line(a, b, c);
-}
-
-template <class T>
-void Line<T>::InputAsPointAndVector(std::istream& stream) {
-  SetPoint(InputResult<PointType>(stream));
-  SetDirectingVector(InputResult<VectorType>(stream));
-}
-
-template <class T>
-std::istream& operator>>(std::istream& stream, Line<T>& line) {
-  line.InputAsPolynom(stream);
-  return stream;
-}
-
-// circle.cpp
-template <class T, class R>
-Circle<T, R>::Circle(const RadiusType& radius, const PointType& center) : radius(radius), center(center) {
-}
-
-template <class T, class R>
-Circle<T, R>::Circle(const PointType& center, const RadiusType& radius) : Circle(radius, center) {
-}
-
-template <class T, class R>
-typename Circle<T, R>::IShapeType& Circle<T, R>::Move(const VectorType& vector) {
-  center.Move(vector);
-  return *this;
-}
-
-template <class T, class R>
-template <typename Cmp>
-bool Circle<T, R>::CompareDistanceToPointAndRadius(const PointType& point, const Cmp& cmp) const {
-  return cmp(static_cast<RadiusType>(SquaredDistance(center, point)), Squared(radius));
-}
-
-template <class T, class R>
-bool Circle<T, R>::ContainsPoint(const PointType& point) const {
-  return CompareDistanceToPointAndRadius<std::less_equal<RadiusType>>(point);
-}
-
-template <class T, class R>
-bool Circle<T, R>::StrictlyContainsPoint(const PointType& point) const {
-  return CompareDistanceToPointAndRadius<std::less<RadiusType>>(point);
-}
-
-template <class T, class R>
-bool Circle<T, R>::CrossesSegment(const SegmentType& segment) const {
-  if (StrictlyContainsPoint(segment.first_point) && StrictlyContainsPoint(segment.second_point)) {
-    return false;
-  }
-  return Distance(center, segment) <= static_cast<double>(radius);
-}
-
-template <class T, class R>
-std::shared_ptr<typename Circle<T, R>::IShapeType> Circle<T, R>::Clone() const {
-  return std::make_shared<Circle>(*this);
-}
-
-template <class T, class R>
-std::string Circle<T, R>::ToString() const {
-  // return (boost::format("Circle(%1%, %2%)") % center % radius).str();
-  std::stringstream ss;
-  ss << "Circle(" << center << ", " << radius << ")";
-  return ss.str();
-}
-
-template <class T, class R>
-std::istream& operator>>(std::istream& stream, Circle<T, R>& circle) {
-  stream >> circle.center >> circle.radius;
-  return stream;
-}
-
-// polygon.cpp
-template <class T>
-Polygon<T>::Polygon(const std::initializer_list<PointType>& list) : points(list) {
-}
-
-template <class T>
-Polygon<T>::Polygon(const std::vector<PointType>& points) : points(points) {
 }
 
 template <class T>
@@ -1096,17 +691,9 @@ auto Polygon<T>::Segments() const {
 }
 
 template <class T>
-typename Polygon<T>::IShapeType& Polygon<T>::Move(const VectorType& vector) {
-  for (PointType& point : points) {
-    point.Move(vector);
-  }
-  return *this;
-}
-
-template <class T>
 bool Polygon<T>::ContainsPoint(const PointType& point) const {
   // T max = std::numeric_limits<T>::max();
-  T max = 200000;
+  T max = 2000000;
   auto ray = Ray(point, VectorType(max, 1));
   size_t count = 0;
   for (const auto& segment : Segments()) {
@@ -1119,46 +706,6 @@ bool Polygon<T>::ContainsPoint(const PointType& point) const {
   }
   return count % 2 == 1;
 }
-
-template <class T>
-bool Polygon<T>::CrossesSegment(const SegmentType& segment) const {
-  for (const auto& s : Segments()) {
-    if (segment.CrossesSegment(s)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-template <class T>
-std::shared_ptr<typename Polygon<T>::IShapeType> Polygon<T>::Clone() const {
-  return std::make_shared<Polygon>(points);
-}
-
-template <class T>
-std::string Polygon<T>::ToString() const {
-  std::stringstream ss;
-  ss << "Polygon(";
-  for (size_t i = 0; i < points.size(); ++i) {
-    if (i != 0) {
-      ss << ", ";
-    }
-    ss << points[i];
-  }
-  ss << ")";
-  return ss.str();
-}
-
-template <class T>
-std::istream& operator>>(std::istream& stream, Polygon<T>& poly) {
-  size_t count = 0;
-  stream >> count;
-  for (size_t i = 0; i < count; ++i) {
-    poly.points.push_back(InputResult<typename Polygon<T>::PointType>());
-  }
-  return stream;
-}
-
 }  // namespace geometry
 
 template <class T, class IStream = std::istream>
@@ -1169,10 +716,15 @@ void InputPolygonN(geometry::Polygon<T>& polygon, size_t n, IStream& istream = s
   }
 }
 
-void Solution() {
+template <class T>
+void Solution(const geometry::Polygon<T>& polygon, const geometry::Point<T>& point) {
+  std::cout << (polygon.ContainsPoint(point) ? "YES" : "NO") << '\n';
+}
+
+int main() {
   using T = int64_t;
 
-  size_t n = 0;
+  size_t n{};
   geometry::Point<T> point;
   geometry::Polygon<T> polygon;
 
@@ -1180,9 +732,5 @@ void Solution() {
 
   InputPolygonN(polygon, n);
 
-  std::cout << (polygon.ContainsPoint(point) ? "YES" : "NO") << '\n';
-}
-
-int main() {
-  Solution();
+  Solution(polygon, point);
 }
