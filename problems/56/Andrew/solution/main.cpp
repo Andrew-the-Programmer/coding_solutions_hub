@@ -3,48 +3,29 @@
 
 #include <iostream>
 #include <iomanip>
-#include <string>
 #include <cmath>
-#include <sstream>
-#include <type_traits>
 #include <vector>
-
-template <class T, class IStream = std::istream>
-void Input(T& value, IStream& istream = std::cin) {
-  istream >> value;
-}
 
 template <class T, class IStream = std::istream>
 T InputResult(IStream& istream = std::cin) {
   T value;
-  Input(value, istream);
+  istream >> value;
   return value;
 }
 
-template <class T, class IStream = std::istream>
-void Input(std::vector<T>& vector, size_t size, IStream& istream = std::cin) {
+template <class T>
+void Input(std::vector<T>& vector, size_t size) {
   vector.reserve(size + vector.size());
   for (size_t i = 0; i < size; ++i) {
-    vector.emplace_back(InputResult<T>(istream));
+    vector.emplace_back(InputResult<T>(std::cin));
   }
 }
-
-struct IOutputClass {
-  virtual std::string ToString() const = 0;
-
-  friend auto& operator<<(std::ostream& stream, const IOutputClass& value) {
-    stream << value.ToString();
-    return stream;
-  }
-
-  virtual ~IOutputClass() = default;
-};
 
 template <class T>
 struct Vector;
 
 template <class T>
-struct Point : IOutputClass {
+struct Point {
   using VectorType = Vector<T>;
 
   T x;
@@ -58,24 +39,6 @@ struct Point : IOutputClass {
     return {0, 0};
   }
 
-  std::string ToString() const override {
-    std::stringstream ss;
-    ss << x << " " << y;
-    return ss.str();
-  }
-
-  VectorType operator-(const Point& other) const {
-    return {other, *this};
-  }
-
-  bool operator==(const Point& other) const {
-    return x == other.x && y == other.y;
-  }
-
-  bool operator!=(const Point& other) const {
-    return !(*this == other);
-  }
-
   friend auto& operator>>(std::istream& stream, Point& point) {
     stream >> point.x >> point.y;
     return stream;
@@ -83,7 +46,7 @@ struct Point : IOutputClass {
 };
 
 template <class T>
-struct Vector : IOutputClass {
+struct Vector {
   using PointType = Point<T>;
 
   T x;
@@ -101,24 +64,6 @@ struct Vector : IOutputClass {
     return {x, y};
   }
 
-  std::string ToString() const override {
-    std::stringstream ss;
-    ss << "Vector(" << x << ", " << y << ")";
-    return ss.str();
-  }
-
-  bool IsZero() const {
-    return x == 0 && y == 0;
-  }
-
-  auto SquaredLength() const {
-    return this->Dot(*this);
-  }
-
-  double Length() const {
-    return std::sqrt(SquaredLength());
-  }
-
   auto Dot(const Vector& other) const {
     return x * other.x + y * other.y;
   }
@@ -126,53 +71,10 @@ struct Vector : IOutputClass {
   auto Cross(const Vector& other) const {
     return x * other.y - y * other.x;
   }
-
-  Vector& operator+=(const Vector& other) {
-    x += other.x;
-    y += other.y;
-    return *this;
-  }
-
-  Vector operator+(const Vector& other) const {
-    auto result = *this;
-    result += other;
-    return result;
-  }
-
-  Vector& operator-=(const Vector& other) {
-    x -= other.x;
-    y -= other.y;
-    return *this;
-  }
-
-  Vector operator-(const Vector& other) const {
-    auto result = *this;
-    result -= other;
-    return result;
-  }
-
-  Vector operator-() const {
-    return {-x, -y};
-  }
-
-  bool operator==(const Vector& other) const {
-    return x == other.x && y == other.y;
-  }
-
-  friend auto& operator>>(std::istream& stream, Vector& vector) {
-    using V = Vector<T>;
-    using P = typename V::PointType;
-    vector = V(InputResult<P>());
-    return stream;
-  }
-
-  bool LongerThan(const Vector& other) const {
-    return SquaredLength() > other.SquaredLength();
-  }
 };
 
 template <class T>
-struct Polygon : std::vector<Point<T>>, IOutputClass {
+struct Polygon : std::vector<Point<T>> {
   using Base = std::vector<Point<T>>;
 
   using Base::Base;
@@ -180,36 +82,15 @@ struct Polygon : std::vector<Point<T>>, IOutputClass {
   using VectorType = Vector<T>;
   using PointType = Point<T>;
 
-  std::string ToString() const override {
-    std::stringstream ss;
-    for (size_t i = 0; i < this->size(); ++i) {
-      if (i != 0) {
-        ss << '\n';
-      }
-      ss << this->at(i);
-    }
-    return ss.str();
-  }
-
-  auto VectorToPoint(size_t index, PointType begin = PointType::Zero()) const {
-    return VectorType(begin, this->at(index));
-  }
-
-  template <class SurfaceType>
-  auto GetSegmentSurfaceDouble(size_t index, PointType begin = PointType::Zero()) const {
-    auto first_vector = this->VectorToPoint(index, begin);
-    auto second_vector = this->VectorToPoint((index + 1) % this->size(), begin);
-    auto surface = static_cast<SurfaceType>(first_vector.Cross(second_vector));
-    return surface;
-  }
-
   auto Surface() {
-    using S = long double;
-    S surface = 0;
-    for (size_t i = 0; i < this->size(); ++i) {
-      surface += this->GetSegmentSurfaceDouble<S>(i);
+    auto n = this->size();
+    int64_t surface = 0;
+    for (size_t i = 0; i < n - 1; ++i) {
+      surface += Vector<T>(this->at(i)).Cross(this->at(i + 1));
     }
-    return std::abs(surface) / 2;
+    surface += Vector<T>(this->back()).Cross(this->front());
+    surface = std::abs(surface);
+    std::cout << surface / 2 << (surface % 2 == 0 ? ".0" : ".5");
   }
 };
 
@@ -219,15 +100,10 @@ void Solution() {
   Polygon<T> polygon;
   Input(polygon, InputResult<size_t>());
 
-  std::cout << polygon.Surface() << '\n';
+  polygon.Surface();
 }
 
 int main() {
   std::cout << std::fixed << std::setprecision(1);
-
-  // std::cout << static_cast<T>(1e18) << std::endl;
-  // std::cout << static_cast<long double>(1e18) + 0.1 << std::endl;
-  // std::cout << (1e18 + 0.1) << std::endl;
-
   Solution();
 }
