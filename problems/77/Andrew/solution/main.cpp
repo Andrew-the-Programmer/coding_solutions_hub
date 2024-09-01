@@ -1,98 +1,123 @@
+// Copyright 2024 Andrew
+
+#include <cstddef>
+#include <functional>
 #include <iostream>
 #include <set>
 #include <vector>
 
-class Graph {
- public:
-  explicit Graph(const int64_t quantity_vert, int64_t quantity_edge)
-      : quantity_vert_(quantity_vert), new_quantity_vert_(quantity_vert + quantity_edge) {
-    edges_.resize(new_quantity_vert_ + 1);
-    colors_.resize(new_quantity_vert_ + 1, 0);
-    time_in_.resize(new_quantity_vert_ + 1, -1);
-    time_up_.resize(new_quantity_vert_ + 1, -1);
-    quantity_children_.resize(new_quantity_vert_ + 1, 0);
-  }
-  void PushEdges(int64_t first_vert, int64_t second_vert, int64_t third_vert, int64_t order) {
-    edges_[quantity_vert_ + order].push_back(second_vert);
-    edges_[quantity_vert_ + order].push_back(first_vert);
-    edges_[quantity_vert_ + order].push_back(third_vert);
-    edges_[first_vert].push_back(quantity_vert_ + order);
-    edges_[second_vert].push_back(quantity_vert_ + order);
-    edges_[third_vert].push_back(quantity_vert_ + order);
-  }
-  void PrintComponents() {
-    DFS();
-    auto size_articulation_points = static_cast<int64_t>(articulation_points_.size());
-    std::cout << size_articulation_points << '\n';
-    for (auto it : articulation_points_) {
-      std::cout << it - quantity_vert_ << '\n';
-    }
+using NodeType = size_t;
+
+struct Edge {
+  NodeType from;
+  NodeType to;
+  size_t number;
+
+  Edge() = default;
+  Edge(NodeType from, NodeType to, size_t number) : from(from), to(to), number(number) {
   }
 
- private:
-  std::vector<std::vector<int64_t>> edges_;
-  int64_t quantity_vert_{};
-  int64_t new_quantity_vert_{};
-  std::vector<int64_t> colors_{};
-  std::vector<int64_t> parent_{};
-  std::vector<int64_t> time_in_;
-  std::vector<int64_t> time_up_;
-  std::set<int64_t> articulation_points_;
-  int64_t graph_components_ = 0;
-  int64_t time_ = 0;
-  std::vector<int64_t> quantity_children_;
-  void DFS() {
-    for (int64_t i = 1; i <= new_quantity_vert_; ++i) {
-      if (colors_[i] == 0) {
-        DfsVisit(i, true);
-        ++graph_components_;
-      }
-    }
-  }
-  void DfsVisit(int64_t begin_vertex, bool is_root) {
-    colors_[begin_vertex] = 1;
-    time_in_[begin_vertex] = time_;
-    time_up_[begin_vertex] = time_;
-    time_++;
-    for (auto neighbor : edges_[begin_vertex]) {
-      if (colors_[neighbor] == 1) {
-        time_up_[begin_vertex] = std::min(time_up_[begin_vertex], time_in_[neighbor]);
-      }
-      if (colors_[neighbor] == 0) {
-        quantity_children_[begin_vertex]++;
-        DfsVisit(neighbor, false);
-        time_up_[begin_vertex] = std::min(time_up_[begin_vertex], time_up_[neighbor]);
-        if ((!is_root) && (time_in_[begin_vertex] <= time_up_[neighbor])) {
-          if (begin_vertex > quantity_vert_) {
-            articulation_points_.insert(begin_vertex);
-          }
-        }
-      }
-    }
-    if ((is_root) && (quantity_children_[begin_vertex] > 1)) {
-      if (begin_vertex > quantity_vert_) {
-        articulation_points_.insert(begin_vertex);
-      }
-    }
-    colors_[begin_vertex] = 2;
+  Edge Reverse() const {
+    return {to, from, number};
   }
 };
 
-int main() {
-  std::ios::sync_with_stdio(false);
-  std::cin.tie(nullptr);
-  std::cout.tie(nullptr);
-  int64_t quantity_vertexes{};
-  int64_t quantity_edges{};
-  std::cin >> quantity_vertexes >> quantity_edges;
-  Graph graph(quantity_vertexes, quantity_edges * 3);
-  int64_t first_vert = 0;
-  int64_t second_vert = 0;
-  int64_t third_vert = 0;
-  for (int64_t i = 1; i <= quantity_edges; i++) {
-    std::cin >> first_vert >> second_vert >> third_vert;
-    graph.PushEdges(first_vert, second_vert, third_vert, i);
+struct TriangleEdge {
+  NodeType first_node;
+  NodeType second_node;
+  NodeType third_node;
+  size_t number;
+};
+
+// Graph: not oriented
+class Graph {
+  using AdjListT = std::vector<std::vector<Edge>>;
+
+ public:
+  explicit Graph(size_t n, size_t m) : n(n), m(m), adj_list_(n + m) {
   }
-  graph.PrintComponents();
-  return 0;
+
+  void AddEdge(const Edge &edge) {
+    adj_list_[edge.from].emplace_back(edge);
+    adj_list_[edge.to].emplace_back(edge.Reverse());
+  }
+  void AddEdge(const TriangleEdge &edge) {
+    auto strange_node = n + edge.number;
+    AddEdge(Edge{edge.first_node, strange_node, edge.number});
+    AddEdge(Edge{edge.second_node, strange_node, edge.number});
+    AddEdge(Edge{edge.third_node, strange_node, edge.number});
+  }
+
+  size_t CountNodes() const {
+    return adj_list_.size();
+  }
+
+  auto &&GetEdges(NodeType node) const {
+    return adj_list_[node];
+  }
+
+ public:
+  size_t n = 0;
+  size_t m = 0;
+
+  AdjListT adj_list_;
+};
+
+void Solution(const Graph &graph) {
+  size_t size = graph.CountNodes();
+  std::vector<bool> visited(size, false);
+  std::vector<size_t> time_in(size, 0);
+  std::vector<size_t> time_up(size, 0);
+  std::set<size_t> articulation_points;
+  size_t time_count = 0;
+
+  std::function<void(NodeType, bool)> dfs_helper = [&](NodeType cur, bool is_root) {
+    visited[cur] = true;
+    time_in[cur] = time_up[cur] = time_count++;
+    size_t children_count = 0;
+    for (auto &edge : graph.GetEdges(cur)) {
+      auto next = edge.to;
+      if (visited[next]) {
+        time_up[cur] = std::min(time_up[cur], time_in[next]);
+        continue;
+      }
+      ++children_count;
+      dfs_helper(next, false);
+      time_up[cur] = std::min(time_up[cur], time_up[next]);
+      if (!is_root && cur >= graph.n && time_up[next] >= time_in[cur]) {
+        articulation_points.insert(cur);
+      }
+    }
+    if (is_root && cur >= graph.n && children_count > 1) {
+      articulation_points.insert(cur);
+    }
+  };
+  for (size_t i = 0; i < size; ++i) {
+    if (!visited[i]) {
+      dfs_helper(i, true);
+    }
+  }
+
+  std::cout << articulation_points.size() << '\n';
+  for (auto &point : articulation_points) {
+    std::cout << point - graph.n + 1 << '\n';
+  }
+}
+
+int main() {
+  size_t n{};
+  size_t m{};
+  std::cin >> n >> m;
+  Graph graph(n, m);
+  for (size_t i = 0; i < m; ++i) {
+    NodeType first{};
+    NodeType second{};
+    NodeType third{};
+    std::cin >> first >> second >> third;
+    --first;
+    --second;
+    --third;
+    graph.AddEdge({first, second, third, i});
+  }
+  Solution(graph);
 }
