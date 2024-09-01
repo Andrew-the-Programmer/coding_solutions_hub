@@ -1,75 +1,117 @@
-#include <algorithm>
+// Copyright 2024 Andrew
+
+#include <cstddef>
+#include <functional>
 #include <iostream>
-#include <utility>
+#include <optional>
+#include <set>
 #include <vector>
 
-void DFS(std::vector<std::vector<std::pair<int, int>>> &graph, int v, std::vector<int> &colors,
-         std::vector<int> &time_in, std::vector<int> &time_out, int &time,
-         std::vector<std::pair<std::pair<int, int>, int>> &bridge, int p) {
-  colors[v] = 1;
-  time_in[v] = time_out[v] = time++;
-  for (auto &i : graph[v]) {
-    if (i.first == p) {
-      continue;
-    }
-    if (colors[i.first] == 1) {
-      time_out[v] = std::min(time_out[v], time_in[i.first]);
-    } else if (colors[i.first] == 0) {
-      DFS(graph, i.first, colors, time_in, time_out, time, bridge, v);
-      time_out[v] = std::min(time_out[v], time_out[i.first]);
-      if (time_in[v] < time_out[i.first]) {
-        bridge.emplace_back(std::pair(v, i.first), i.second);
+using NodeType = size_t;
+
+struct Edge {
+  NodeType from;
+  NodeType to;
+  size_t number;
+
+  Edge() = default;
+  Edge(NodeType from, NodeType to, size_t number) : from(from), to(to), number(number) {
+  }
+
+  Edge Reverse() const {
+    return {to, from, number};
+  }
+
+  bool operator<(const Edge &other) const {
+    return number < other.number;
+  }
+
+  bool operator==(const Edge &other) const {
+    return number == other.number;
+  }
+};
+
+// Graph: not oriented
+class Graph {
+  using AdjListT = std::vector<std::vector<Edge>>;
+
+ public:
+  explicit Graph(size_t n) : adj_list_(n) {
+  }
+
+  void AddEdge(const Edge &edge) {
+    adj_list_[edge.from].emplace_back(edge);
+    adj_list_[edge.to].emplace_back(edge.Reverse());
+  }
+
+  size_t CountNodes() const {
+    return adj_list_.size();
+  }
+
+  auto &&GetEdges(NodeType node) const {
+    return adj_list_[node];
+  }
+
+ protected:
+  AdjListT adj_list_;
+};
+
+auto FindBridges(const Graph &graph) {
+  size_t n = graph.CountNodes();
+  std::vector<bool> visited(n, false);
+  // First time visiting a node
+  // Represents dfs traverse order
+  std::vector<size_t> time_in(n, 0);
+  // time_out[i] = max(time_in[j]) for every j, such that path from i to j exists.
+  std::vector<size_t> time_out(n, 0);
+  std::set<size_t> bridges;
+  size_t time_count = 0;
+
+  std::function<void(NodeType, NodeType)> helper = [&](NodeType cur, std::optional<NodeType> parent) {
+    visited[cur] = true;
+    time_in[cur] = time_out[cur] = time_count++;
+    for (auto &edge : graph.GetEdges(cur)) {
+      auto next = edge.to;
+      // only thing parent is useful for
+      if (parent && next == *parent) {
+        continue;
+      }
+      if (visited[next]) {
+        time_out[cur] = std::min(time_out[cur], time_in[next]);
+        continue;
+      }
+      helper(next, cur);
+      time_out[cur] = std::min(time_out[cur], time_out[next]);
+      if (time_out[next] > time_in[cur]) {
+        bridges.emplace(edge.number);
       }
     }
+  };
+
+  for (size_t root = 0; root < n; root++) {
+    if (!visited[root]) {
+      helper(root, {});
+    }
   }
-  colors[v] = 2;
+  return bridges;
 }
 
 int main() {
-  int n{};
+  size_t n{};
   size_t m{};
-  int time = 0;
   std::cin >> n >> m;
-  if (n == 0 && m == 0) {
-    std::cout << 0;
-    return 0;
+  Graph graph(n);
+  for (size_t i = 0; i < m; i++) {
+    NodeType from{};
+    NodeType to{};
+    std::cin >> from >> to;
+    --from;
+    --to;
+    graph.AddEdge({from, to, i});
   }
-  std::vector<std::pair<std::pair<int, int>, int>> bridge{};
-  std::vector<int> time_in(n, 999999);
-  std::vector<int> time_out(n, 999999);
-  std::vector<std::vector<std::pair<int, int>>> graph(n);
-  int a{};
-  int b{};
-  for (size_t i = 0; i < m; ++i) {
-    std::cin >> a >> b;
-    a--, b--;
-    graph[a].emplace_back(b, i);
-    graph[b].emplace_back(a, i);
+  auto bridges = FindBridges(graph);
+  std::cout << bridges.size() << std::endl;
+  for (auto &edge : bridges) {
+    std::cout << edge + 1 << "\n";
   }
-  std::vector<int> colors(n, 0);
-  for (int i = 0; i < n; ++i) {
-    if (colors[i] == 2) {
-      continue;
-    }
-    DFS(graph, i, colors, time_in, time_out, time, bridge, -1);
-  }
-  for (size_t i = 0; i < bridge.size(); ++i) {
-    int count = 0;
-    for (size_t j = 0; j < graph[bridge[i].first.first].size(); ++j) {
-      if (graph[bridge[i].first.first][j].first == bridge[i].first.second) {
-        count++;
-      }
-    }
-    if (count >= 2) {
-      bridge.erase(bridge.begin() + static_cast<int>(i));
-    }
-  }
-  std::cout << bridge.size() << std::endl;
-  std::sort(
-      bridge.begin(), bridge.end(),
-      [](std::pair<std::pair<int, int>, int> a, std::pair<std::pair<int, int>, int> b) { return a.second < b.second; });
-  for (auto &i : bridge) {
-    std::cout << i.second + 1 << " ";
-  }
-  return 0;
 }
