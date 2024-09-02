@@ -3,81 +3,95 @@
 #include <set>
 #include <vector>
 
+using NodeType = size_t;
+
 class DSU {
  public:
-  void MakeSet(int64_t vertex);
-  int64_t FindSet(int64_t vertex);
-  bool Union(int64_t first_vertex, int64_t second_vertex);
-  explicit DSU(int64_t quantity_vert) : graph_quantity_vertexes(quantity_vert) {
-    parent_.resize(quantity_vert + 1);
-    rank_.resize(quantity_vert + 1);
-    qv.resize(quantity_vert + 1, 1);
-    for (int64_t i = 0; i < quantity_vert; ++i) {
+  explicit DSU(size_t size) : size(size), parent(size), rank(size), mass(size, 1) {
+    for (NodeType i = 0; i < size; ++i) {
       MakeSet(i);
     }
   }
-  DSU() = default;
-  std::vector<int64_t> qv{};
-  int64_t graph_quantity_vertexes{};
-  std::vector<int64_t> parent_{};
-  std::vector<int64_t> rank_{};
+
+ public:
+  void MakeSet(NodeType node) {
+    parent[node] = node;
+    rank[node] = 1;
+  }
+
+  NodeType FindSet(NodeType node) {
+    if (node == parent[node]) {
+      return node;
+    }
+    return parent[node] = FindSet(parent[node]);
+  }
+
+  void Hang(NodeType node, NodeType root) {
+    // hang node to root
+    parent[node] = root;
+    mass[root] += mass[node];
+  }
+
+  bool Union(NodeType first, NodeType second) {
+    auto first_root = FindSet(first);
+    auto second_root = FindSet(second);
+    if (first_root == second_root) {
+      return false;
+    }
+    if (rank[first_root] < rank[second_root]) {
+      Hang(first_root, second_root);
+    } else if (rank[first_root] > rank[second_root]) {
+      Hang(second_root, first_root);
+    } else {
+      Hang(first_root, second_root);
+      rank[second_root] += 1;
+    }
+    return (mass[first_root] == size) || (mass[second_root] == size);
+  }
+
+ public:
+  size_t size{};
+  std::vector<size_t> parent{};
+  std::vector<size_t> rank{};
+  std::vector<size_t> mass{};
 };
+
+struct Edge {
+  NodeType from;
+  NodeType to;
+
+  Edge() = default;
+  Edge(NodeType from, NodeType to) : from(from), to(to) {
+  }
+
+  Edge Reverse() const {
+    return {to, from};
+  }
+};
+
 class Graph {
  public:
-  explicit Graph(int64_t quantity_vertexes) {
-    dsu_ = DSU(quantity_vertexes);
+  explicit Graph(NodeType n) : dsu(n) {
   }
-  bool CheckEdge(int64_t first_vert, int64_t second_vert);
-  DSU dsu_{};
+  DSU dsu;
 };
-void DSU::MakeSet(int64_t vertex) {
-  parent_[vertex] = vertex;
-  rank_[vertex] = 1;
+
+bool CheckEdge(Graph& graph, const Edge& edge) {
+  return graph.dsu.Union(edge.from, edge.to);
 }
-int64_t DSU::FindSet(int64_t vertex) {
-  if (vertex == parent_[vertex]) {
-    return vertex;
-  }
-  return parent_[vertex] = FindSet((parent_[vertex]));
-}
-bool DSU::Union(int64_t first_vertex, int64_t second_vertex) {
-  first_vertex = FindSet(first_vertex);
-  second_vertex = FindSet(second_vertex);
-  if (first_vertex == second_vertex) {
-    return false;
-  }
-  if (rank_[first_vertex] < rank_[second_vertex]) {
-    parent_[first_vertex] = second_vertex;
-    qv[second_vertex] += qv[first_vertex];
-  } else if (rank_[first_vertex] > rank_[second_vertex]) {
-    parent_[second_vertex] = first_vertex;
-    qv[first_vertex] += qv[second_vertex];
-  } else {
-    parent_[first_vertex] = second_vertex;
-    qv[second_vertex] += qv[first_vertex];
-    rank_[second_vertex] += 1;
-  }
-  return ((qv[first_vertex] == graph_quantity_vertexes) || (qv[second_vertex] == graph_quantity_vertexes));
-}
-bool Graph::CheckEdge(int64_t first_vert, int64_t second_vert) {
-  return dsu_.Union(first_vert, second_vert);
-}
+
 int main() {
-  std::ios::sync_with_stdio(false);
-  std::cin.tie(nullptr);
-  std::cout.tie(nullptr);
-  int64_t quantity_edges{};
-  int64_t quantity_vertexes{};
-  std::cin >> quantity_vertexes >> quantity_edges;
-  Graph graph(quantity_vertexes);
-  int64_t second_vert{};
-  int64_t first_vert{};
-  for (int64_t i = 0; i < quantity_edges; i++) {
-    std::cin >> first_vert >> second_vert;
-    if (graph.CheckEdge(first_vert, second_vert)) {
+  size_t n{};
+  size_t m{};
+  std::cin >> n >> m;
+  Graph graph(n);
+  for (size_t i = 0; i < m; i++) {
+    NodeType from{};
+    NodeType to{};
+    std::cin >> from >> to;
+    if (CheckEdge(graph, {from, to})) {
       std::cout << i + 1;
       break;
     }
   }
-  return 0;
 }
