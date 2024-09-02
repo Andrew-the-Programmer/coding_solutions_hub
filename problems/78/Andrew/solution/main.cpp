@@ -1,122 +1,117 @@
-#include <algorithm>
+// Copyright 2024 Andrew
+
+#include <cstddef>
+#include <functional>
 #include <iostream>
+#include <optional>
 #include <set>
 #include <vector>
+
+using NodeType = size_t;
+
 struct Edge {
-  int64_t vertex_{};
-  int64_t order_{};
-  Edge(const int64_t &vertex, const int64_t &order) : vertex_(vertex), order_(order) {
-  }
+  NodeType from;
+  NodeType to;
+  size_t number;
+
   Edge() = default;
-};
-struct EdgeBridge {
-  int64_t from_{};
-  int64_t to_{};
-  int64_t order_{};
-  EdgeBridge(const int64_t &from, const int64_t &to, const int64_t &order) : from_(from), to_(to), order_(order) {
-  }
-  friend bool operator<(const EdgeBridge &first, const EdgeBridge &second) {
-    return ((first.from_ < second.from_) || ((first.from_ == second.from_) && (first.to_ < second.to_)) ||
-            ((first.from_ == second.from_) && (first.to_ == second.to_) && (first.order_ < second.order_)));
-  }
-  EdgeBridge() = default;
-};
-class Graph {
- public:
-  explicit Graph(const int64_t &new_quantity_vert, const int64_t &quantity_edges)
-      : quantity_vert_(new_quantity_vert), quantity_edges_(quantity_edges) {
-    edges_.resize(quantity_vert_ + 1);
-    colors_.resize(quantity_vert_ + 1, 0);
-    time_in_.resize(quantity_vert_ + 1, -1);
-    time_up_.resize(quantity_vert_ + 1, -1);
-    bridges_.resize(quantity_edges + 1, 0);
-  }
-  void PushEdge(const int64_t &first_vert, const int64_t &second_vert, const int64_t &order) {
-    multiplies_edges_.emplace_back(std::min(first_vert, second_vert), std::max(first_vert, second_vert), order);
-  }
-  void PushCorrectEdge(const int64_t &first_vert, const int64_t &second_vert, const int64_t &order) {
-    edges_[first_vert].emplace_back(second_vert, order);
-    edges_[second_vert].emplace_back(first_vert, order);
-  }
-  void DeleteMultipliesEdges() {
-    std::sort(multiplies_edges_.begin(), multiplies_edges_.end());
-    for (int64_t i = 0; i < quantity_edges_;) {
-      int64_t j = i + 1;
-      while ((j < quantity_edges_) && (multiplies_edges_[i].from_ == multiplies_edges_[j].from_) &&
-             (multiplies_edges_[i].to_ == multiplies_edges_[j].to_)) {
-        ++j;
-      }
-      if (i + 1 == j) {
-        PushCorrectEdge(multiplies_edges_[i].from_, multiplies_edges_[i].to_, multiplies_edges_[i].order_);
-      }
-      i = j;
-    }
-  }
-  void PrintBridges() {
-    DeleteMultipliesEdges();
-    DFS();
-    std::cout << size_bridges_ << std::endl;
-    for (int64_t i = 1; i <= quantity_edges_; i++) {
-      if (bridges_[i] == 1) {
-        std::cout << i << std::endl;
-      }
-    }
+  Edge(NodeType from, NodeType to, size_t number) : from(from), to(to), number(number) {
   }
 
- private:
-  std::vector<std::vector<Edge>> edges_{};
-  int64_t quantity_vert_{};
-  int64_t quantity_edges_{};
-  int64_t size_bridges_{};
-  std::vector<int64_t> colors_{};
-  std::vector<int64_t> time_in_{};
-  std::vector<int64_t> time_up_{};
-  std::vector<EdgeBridge> multiplies_edges_{};
-  std::vector<int64_t> bridges_{};
-  int64_t time_{};
-  void DFS() {
-    for (int64_t i = 1; i <= quantity_vert_; ++i) {
-      if (colors_[i] == 0) {
-        DfsVisit(0, i);
-      }
-    }
+  Edge Reverse() const {
+    return {to, from, number};
   }
-  void DfsVisit(int64_t parent, int64_t begin_vertex) {
-    colors_[begin_vertex] = 1;
-    time_in_[begin_vertex] = time_;
-    time_up_[begin_vertex] = time_;
-    time_++;
-    for (auto neighbor : edges_[begin_vertex]) {
-      if ((colors_[neighbor.vertex_] == 1) && (parent != neighbor.vertex_)) {
-        time_up_[begin_vertex] = std::min(time_up_[begin_vertex], time_in_[neighbor.vertex_]);
-      }
-      if (colors_[neighbor.vertex_] == 0) {
-        DfsVisit(begin_vertex, neighbor.vertex_);
-        time_up_[begin_vertex] = std::min(time_up_[begin_vertex], time_up_[neighbor.vertex_]);
-        if (time_in_[begin_vertex] < time_up_[neighbor.vertex_]) {
-          bridges_[neighbor.order_] = 1;
-          size_bridges_++;
-        }
-      }
-    }
-    colors_[begin_vertex] = 2;
+
+  bool operator<(const Edge &other) const {
+    return number < other.number;
+  }
+
+  bool operator==(const Edge &other) const {
+    return number == other.number;
   }
 };
+
+// Graph: not oriented
+class Graph {
+  using AdjListT = std::vector<std::vector<Edge>>;
+
+ public:
+  explicit Graph(size_t n) : adj_list_(n) {
+  }
+
+  void AddEdge(const Edge &edge) {
+    adj_list_[edge.from].emplace_back(edge);
+    adj_list_[edge.to].emplace_back(edge.Reverse());
+  }
+
+  size_t CountNodes() const {
+    return adj_list_.size();
+  }
+
+  auto &&GetEdges(NodeType node) const {
+    return adj_list_[node];
+  }
+
+ protected:
+  AdjListT adj_list_;
+};
+
+auto FindBridges(const Graph &graph) {
+  size_t n = graph.CountNodes();
+  std::vector<bool> visited(n, false);
+  // First time visiting a node
+  // Represents dfs traverse order
+  std::vector<size_t> time_in(n, 0);
+  // time_out[i] = max(time_in[j]) for every j, such that path from i to j exists.
+  std::vector<size_t> time_out(n, 0);
+  std::set<size_t> bridges;
+  size_t time_count = 0;
+
+  std::function<void(NodeType, std::optional<Edge>)> helper = [&](NodeType cur, std::optional<Edge> cur_edge) {
+    visited[cur] = true;
+    time_in[cur] = time_out[cur] = time_count++;
+    for (auto &edge : graph.GetEdges(cur)) {
+      // Only thing cur_edge is useful for
+      if (cur_edge && edge.number == cur_edge.value().number) {
+        continue;
+      }
+      auto next = edge.to;
+      if (visited[next]) {
+        time_out[cur] = std::min(time_out[cur], time_in[next]);
+        continue;
+      }
+      helper(next, edge);
+      time_out[cur] = std::min(time_out[cur], time_out[next]);
+      if (time_out[next] > time_in[cur]) {
+        bridges.emplace(edge.number);
+      }
+    }
+  };
+
+  for (size_t root = 0; root < n; root++) {
+    if (!visited[root]) {
+      helper(root, {});
+    }
+  }
+  return bridges;
+}
 
 int main() {
-  std::ios::sync_with_stdio(false);
-  std::cin.tie(nullptr);
-  std::cout.tie(nullptr);
-  int64_t quantity_vertexes = 0;
-  int64_t quantity_edges = 0;
-  std::cin >> quantity_vertexes >> quantity_edges;
-  Graph graph(quantity_vertexes, quantity_edges);
-  int64_t first_vert = 0;
-  int64_t second_vert = 0;
-  for (int64_t i = 1; i <= quantity_edges; i++) {
-    std::cin >> first_vert >> second_vert;
-    graph.PushEdge(first_vert, second_vert, i);
+  size_t n{};
+  size_t m{};
+  std::cin >> n >> m;
+  Graph graph(n);
+  for (size_t i = 0; i < m; i++) {
+    NodeType from{};
+    NodeType to{};
+    std::cin >> from >> to;
+    --from;
+    --to;
+    graph.AddEdge({from, to, i});
   }
-  graph.PrintBridges();
-  return 0;
+  auto bridges = FindBridges(graph);
+  std::cout << bridges.size() << std::endl;
+  for (auto &edge : bridges) {
+    std::cout << edge + 1 << "\n";
+  }
 }
