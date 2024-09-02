@@ -67,20 +67,20 @@ auto FindBridges(const Graph &graph) {
   std::set<size_t> bridges;
   size_t time_count = 0;
 
-  std::function<void(NodeType, NodeType)> helper = [&](NodeType cur, std::optional<NodeType> parent) {
+  std::function<void(NodeType, std::optional<Edge>)> helper = [&](NodeType cur, std::optional<Edge> cur_edge) {
     visited[cur] = true;
     time_in[cur] = time_out[cur] = time_count++;
     for (auto &edge : graph.GetEdges(cur)) {
-      auto next = edge.to;
-      // only thing parent is useful for
-      if (parent && next == *parent) {
+      // Only thing cur_edge is useful for
+      if (cur_edge && edge.number == cur_edge.value().number) {
         continue;
       }
+      auto next = edge.to;
       if (visited[next]) {
         time_out[cur] = std::min(time_out[cur], time_in[next]);
         continue;
       }
-      helper(next, cur);
+      helper(next, edge);
       time_out[cur] = std::min(time_out[cur], time_out[next]);
       if (time_out[next] > time_in[cur]) {
         bridges.emplace(edge.number);
