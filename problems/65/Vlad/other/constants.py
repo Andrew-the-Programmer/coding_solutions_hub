@@ -16,6 +16,7 @@ def FindUserDir(here: pl.Path) -> pl.Path:
 USER_DIR = FindUserDir(Here())
 OUT_DIR = USER_DIR / "out"
 BUILD_DIR = OUT_DIR / "build"
+DEBUG_DIR = OUT_DIR / "debug"
 SOLUTION_DIR = USER_DIR / "solution"
 PROJECT_NAME = "Solution"
 SOLUTION_EXECUTABLE = BUILD_DIR / PROJECT_NAME

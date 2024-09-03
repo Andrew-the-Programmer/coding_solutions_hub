@@ -13,7 +13,8 @@ def Test() -> subprocess.CompletedProcess:
             SOLUTION_EXECUTABLE,
             "--solution",
             SOLUTION_DIR,
-        ]
+        ],
+        check=False,
     )
 
 
