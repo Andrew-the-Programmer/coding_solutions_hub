@@ -44,7 +44,7 @@ class DSU {
       Hang(second_root, first_root);
     } else {
       Hang(first_root, second_root);
-      rank[second_root] += 1;
+      ++rank[second_root];
     }
     return (mass[first_root] == size) || (mass[second_root] == size);
   }
