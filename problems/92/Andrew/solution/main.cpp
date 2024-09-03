@@ -164,7 +164,7 @@ void SetIostream() {
 }
 
 int main() {
-  // SetIostream();
+  SetIostream();
 
   size_t n{};
   size_t m{};
