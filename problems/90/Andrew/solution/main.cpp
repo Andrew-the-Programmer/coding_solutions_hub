@@ -16,6 +16,14 @@ struct Edge {
   Edge() = default;
   Edge(NodeType from, NodeType to, WeightType weight) : from(from), to(to), weight(weight) {
   }
+
+  Edge Reverse() const {
+    return {to, from, weight};
+  }
+
+  friend auto& operator<<(std::ostream& out, const Edge& edge) {
+    return out << edge.from << ' ' << edge.to << ' ' << edge.weight;
+  }
 };
 
 // Graph: not oriented
@@ -45,16 +53,20 @@ class Graph {
 
 size_t PrimAlgorithm(const Graph& graph) {
   auto n = graph.CountNodes();
-  auto cmp = [](const Edge& first, const Edge& second) { return first.weight < second.weight; };
+  auto cmp = [](const Edge& first, const Edge& second) { return first.weight > second.weight; };
   std::priority_queue<Edge, std::vector<Edge>, decltype(cmp)> queue(cmp);
   std::vector<bool> visited(n, false);
 
   WeightType total_weight = 0;
 
-  // queue.push();
+  queue.emplace(0, 0, 0);
   while (!queue.empty()) {
     auto cur_edge = queue.top();
+    // std::cout << cur_edge << '\n';
     queue.pop();
+    if (visited[cur_edge.to]) {
+      continue;
+    }
     visited[cur_edge.to] = true;
     total_weight += cur_edge.weight;
     for (auto& next_edge : graph.GetEdges(cur_edge.to)) {
