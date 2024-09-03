@@ -9,34 +9,34 @@
 using NodeType = size_t;
 using WeightType = int;
 
-struct EdgeOW {
+struct Edge {
   NodeType from;
   NodeType to;
   WeightType weight;
 
-  EdgeOW() = default;
-  EdgeOW(NodeType from, NodeType to, WeightType weight = 1) : from(from), to(to), weight(weight) {
+  Edge() = default;
+  Edge(NodeType from, NodeType to, WeightType weight = 1) : from(from), to(to), weight(weight) {
   }
 
-  friend auto& operator<<(std::ostream& stream, const EdgeOW& edge) {
+  friend auto& operator<<(std::ostream& stream, const Edge& edge) {
     stream << edge.from << ' ' << edge.to << ' ' << edge.weight;
     return stream;
   }
 
-  friend std::istream& operator>>(std::istream& stream, EdgeOW& edge) {
+  friend std::istream& operator>>(std::istream& stream, Edge& edge) {
     stream >> edge.from >> edge.to >> edge.weight;
     return stream;
   }
 };
 
 class GraphOW {
-  using AdjListT = std::vector<std::vector<EdgeOW>>;
+  using AdjListT = std::vector<std::vector<Edge>>;
 
  public:
   explicit GraphOW(size_t n) : adj_list_(n) {
   }
 
-  void AddEdge(const EdgeOW& edge) {
+  void AddEdge(const Edge& edge) {
     adj_list_[edge.from].emplace_back(edge);
   }
 
@@ -52,7 +52,7 @@ class GraphOW {
   AdjListT adj_list_;
 };
 
-using E = EdgeOW;
+using E = Edge;
 using G = GraphOW;
 
 // BFS for 0-1 graph

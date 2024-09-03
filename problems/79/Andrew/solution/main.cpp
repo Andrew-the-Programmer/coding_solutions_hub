@@ -1,116 +1,157 @@
-#include <queue>
+// Copyright 2024 Andrew
+
+#include <cstddef>
+#include <cstdint>
+#include <functional>
 #include <iostream>
+#include <optional>
+#include <set>
+#include <stack>
 #include <vector>
 
+using NodeType = size_t;
+
+struct Edge {
+  NodeType from;
+  NodeType to;
+
+  Edge() = default;
+  Edge(NodeType from, NodeType to) : from(from), to(to) {
+  }
+};
+
+// Graph: oriented
+// with degree
 class Graph {
+  using AdjListT = std::vector<std::vector<Edge>>;
+
  public:
-  explicit Graph(const int64_t new_quantity_vert) : quantity_vert_(new_quantity_vert) {
-    edges_.resize(quantity_vert_ + 1);
-    degrees_.resize(quantity_vert_ + 1);
-    colors_.resize(quantity_vert_ + 1, 0);
-    is_used_.resize(quantity_vert_ + 1, false);
+  explicit Graph(size_t n) : adj_list_(n), degree_in_(n, 0), degree_out_(n, 0) {
   }
-  void PushEdge(int64_t first_vert, int64_t second_vert) {
-    edges_[first_vert].push_back(second_vert);
-    is_used_[first_vert] = true;
-    is_used_[second_vert] = true;
-    ++degrees_[first_vert];
-    --degrees_[second_vert];
+
+  void AddEdge(const Edge &edge) {
+    adj_list_[edge.from].emplace_back(edge);
+    ++degree_out_[edge.from];
+    ++degree_in_[edge.to];
+    ++count_edges_;
   }
-  void ResultCycle() {
-    if (!CheckCorrectEuler()) {
-      std::cout << 0;
-      return;
+  size_t CountNodes() const {
+    return adj_list_.size();
+  }
+  size_t CountEdges() const {
+    return count_edges_;
+  }
+
+  auto &&GetEdges(NodeType node) const {
+    return adj_list_[node];
+  }
+  auto &&GetEdges(NodeType node) {
+    return adj_list_[node];
+  }
+
+  auto GetDegreeIn(NodeType node) const {
+    return degree_in_[node];
+  }
+  auto GetDegreeOut(NodeType node) const {
+    return degree_out_[node];
+  }
+
+  auto GetDegree(NodeType node) const {
+    return static_cast<int64_t>(GetDegreeIn(node)) - GetDegreeOut(node);
+  }
+
+ protected:
+  AdjListT adj_list_;
+  std::vector<size_t> degree_in_;
+  std::vector<size_t> degree_out_;
+  size_t count_edges_ = 0;
+};
+
+bool CheckEulerCycle(const Graph &graph) {
+  for (size_t i = 0; i < graph.CountNodes(); ++i) {
+    if (graph.GetDegree(i) != 0) {
+      return false;
     }
-    for (int64_t i = 1; i <= quantity_vert_; ++i) {
-      if (is_used_[i]) {
-        begin_vert_ = i;
-        break;
+  }
+  return true;
+}
+
+std::vector<NodeType> FindEulerCycle(Graph &graph) {
+  std::vector<NodeType> cycle;
+
+  if (!CheckEulerCycle(graph)) {
+    // std::cout << "No cycle" << std::endl;
+    return {};
+  }
+
+  std::function<void(NodeType, std::optional<Edge>)> dfs = [&](NodeType node, std::optional<Edge> cur_edge) {
+    // std::cout << "begin: " << node << std::endl;
+    auto &neighbors = graph.GetEdges(node);
+    // std::optional<Edge> edge_to_parent;
+    while (!neighbors.empty()) {
+      auto edge = neighbors.begin();
+      auto size = neighbors.size();
+      if (size != 1 && cur_edge && edge->to == cur_edge->from) {
+        edge = neighbors.begin() + 1;
       }
+      auto next = edge->to;
+      neighbors.erase(edge);
+      dfs(next, *edge);
+
+      // auto size = neighbors.size();
+      // if (size != 1 && cur_edge && next == cur_edge->from) {
+      //   auto edge = neighbors[1];
+      //   auto next = edge.to;
+      //   neighbors.erase(neighbors.begin() + 1);
+      //   dfs(neighbor, )
+      // } else {
+      //   int64_t neighbor = edges_[node][0];
+      //   edges_[node].erase(edges_[node].begin());
+      //   DfsEulerCycle(node, neighbor);
+      // }
     }
-    DfsEulerCycle(-1, begin_vert_);
-    size_t size_new_path = euler_cycle_.size();
-    std::cout << size_new_path << '\n';
-    for (size_t i = 0; i < size_new_path; ++i) {
-      std::cout << euler_cycle_[i] << ' ';
+    // std::cout << "end: " << node << std::endl;
+    cycle.emplace_back(node);
+  };
+
+  for (size_t i = 0; i < graph.CountNodes(); ++i) {
+    if (graph.GetDegreeOut(i) != 0) {
+      dfs(i, {});
+      break;
     }
   }
 
- private:
-  std::vector<int64_t> colors_;
-  std::vector<std::vector<int64_t>> edges_;
-  std::vector<int64_t> degrees_;
-  std::vector<bool> is_used_;
-  int64_t quantity_vert_;
-  std::vector<int64_t> euler_cycle_;
-  int64_t graph_components_ = 0;
-  int64_t begin_vert_ = 0;
-  bool CheckCorrectEuler() {
-    for (int64_t i = 1; i <= quantity_vert_; ++i) {
-      if (degrees_[i] != 0) {
-        return false;
-      }
-    }
-    DFS();
-    return (graph_components_ == 1);
+  if (cycle.size() != graph.CountEdges() + 1) {
+    // std::cout << "No cycle" << std::endl;
+    return {};
   }
-  void DFS() {
-    for (int64_t i = 1; i <= quantity_vert_; ++i) {
-      if ((graph_components_ == 1) && (colors_[i] == 0) && (is_used_[i])) {
-        graph_components_++;
-        return;
-      }
-      if ((colors_[i] == 0) && (is_used_[i])) {
-        DfsVisit(i);
-        ++graph_components_;
-      }
-    }
-  }
-  void DfsVisit(int64_t begin_vertex) {
-    colors_[begin_vertex] = 1;
-    for (auto neighbor : edges_[begin_vertex]) {
-      if (colors_[neighbor] == 0) {
-        DfsVisit(neighbor);
-      }
-    }
-    colors_[begin_vertex] = 2;
-  }
-  void DfsEulerCycle(int64_t parent, int64_t current_vert) {
-    while (!edges_[current_vert].empty()) {
-      size_t size = edges_[current_vert].size();
-      if ((size != 1) && (edges_[current_vert][0] == parent)) {
-        int64_t neighbor = edges_[current_vert][1];
-        edges_[current_vert].erase(edges_[current_vert].begin() + 1);
-        DfsEulerCycle(current_vert, neighbor);
-      } else {
-        int64_t neighbor = edges_[current_vert][0];
-        edges_[current_vert].erase(edges_[current_vert].begin());
-        DfsEulerCycle(current_vert, neighbor);
-      }
-    }
-    euler_cycle_.emplace_back(current_vert);
-  }
-};
+
+  return cycle;
+}
+
 int main() {
-  std::ios::sync_with_stdio(false);
-  std::cin.tie(nullptr);
-  std::cout.tie(nullptr);
-  int64_t quantity_buses{};
-  int64_t quantity_vertexes{};
-  std::cin >> quantity_buses >> quantity_vertexes;
-  Graph graph(quantity_vertexes);
-  int64_t first_vert{};
-  int64_t second_vert{};
-  int64_t len{};
-  for (int64_t i = 0; i < quantity_buses; i++) {
+  size_t n{};
+  size_t m{};
+  std::cin >> n >> m;
+  Graph graph(m);
+  for (size_t i = 0; i < n; ++i) {
+    size_t len{};
     std::cin >> len;
-    std::cin >> first_vert;
-    for (int64_t j = 0; j < len; j++) {
-      std::cin >> second_vert;
-      graph.PushEdge(first_vert, second_vert);
-      first_vert = second_vert;
+    NodeType from{};
+    std::cin >> from;
+    --from;
+    for (size_t j = 0; j < len; ++j) {
+      NodeType to{};
+      std::cin >> to;
+      --to;
+      graph.AddEdge({from, to});
+      from = to;
     }
   }
-  graph.ResultCycle();
-  return 0;
+  auto cycle = FindEulerCycle(graph);
+  std::cout << cycle.size() << std::endl;
+  for (auto &node : cycle) {
+    std::cout << node + 1 << " ";
+  }
+  std::cout << std::endl;
 }
