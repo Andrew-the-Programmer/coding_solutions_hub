@@ -1,8 +1,7 @@
-#include <iostream>
-#include <iterator>
 #include <optional>
 #include <unordered_set>
 #include <vector>
+#include <iostream>
 
 using NodeType = size_t;
 using WeightType = size_t;
@@ -148,7 +147,7 @@ size_t BoruvkasAlgorithm(const Graph& graph) {
       if (components.InSameSet(cheapest_edge->from, cheapest_edge->to)) {
         continue;
       }
-      components.Union(*cheapest[node]);
+      components.Union(*cheapest_edge);
     }
   }
 
