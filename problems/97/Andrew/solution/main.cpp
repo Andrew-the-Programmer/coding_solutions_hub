@@ -1,72 +1,119 @@
+// Copyright 2024 Andrew
+
+#include <cmath>
+#include <cstddef>
+#include <cstdint>
 #include <iostream>
-#include <queue>
+#include <optional>
 #include <vector>
+#include <queue>
 
-std::vector<int64_t> Deikstra(int64_t vertice, std::vector<std::vector<std::pair<int64_t, int64_t>>>& graph) {
-  std::vector<int64_t> distance(graph.size(), 2'009'000'999);
-  std::vector<bool> visited(graph.size(), false);
-  distance[vertice] = 0;
+using NodeType = uint16_t;
+using WeightType = int32_t;
 
-  std::priority_queue<std::pair<int64_t, int64_t>, std::vector<std::pair<int64_t, int64_t>>,
-                      std::greater<std::pair<int64_t, int64_t>>>
-      queue;
-  queue.emplace(0, vertice);
+struct Edge {
+  NodeType from;
+  NodeType to;
+  WeightType weight;
 
+  Edge() = default;
+  Edge(NodeType from, NodeType to, WeightType weight) : from(from), to(to), weight(weight) {
+  }
+
+  friend auto& operator<<(std::ostream& stream, const Edge& edge) {
+    stream << edge.from << ' ' << edge.to << ' ' << edge.weight;
+    return stream;
+  }
+
+  friend std::istream& operator>>(std::istream& stream, Edge& edge) {
+    stream >> edge.from >> edge.to >> edge.weight;
+    return stream;
+  }
+};
+
+// Not oriented
+class Graph {
+  using AdjListT = std::vector<std::vector<Edge>>;
+
+ public:
+  explicit Graph(size_t n) : adj_list_(n) {
+  }
+
+  void AddEdge(const Edge& edge) {
+    adj_list_[edge.from].emplace_back(edge);
+  }
+
+  size_t CountNodes() const {
+    return adj_list_.size();
+  }
+
+  auto&& GetEdges(NodeType node) const {
+    return adj_list_[node];
+  }
+
+ protected:
+  AdjListT adj_list_;
+};
+
+auto Diijkstra(const Graph& graph, NodeType start) {
+  auto n = graph.CountNodes();
+  std::vector<bool> visited(n, false);
+  std::vector<std::optional<size_t>> dists(n);
+  dists[start] = 0;
+  auto cmp = [](const Edge& first, const Edge& second) { return first.weight > second.weight; };
+  std::priority_queue<Edge, std::vector<Edge>, decltype(cmp)> queue(cmp);
+  queue.emplace(start, start, 0);
   while (!queue.empty()) {
-    int64_t current = queue.top().second;
+    auto cur = queue.top();
     queue.pop();
-
-    if (visited[current]) {
+    if (visited[cur.to]) {
       continue;
     }
-    visited[current] = true;
-
-    for (const auto& node : graph[current]) {
-      int64_t v = node.first;
-      int64_t weight = node.second;
-
-      if (distance[current] + weight < distance[v]) {
-        distance[v] = distance[current] + weight;
-        queue.emplace(distance[v], v);
+    visited[cur.to] = true;
+    for (auto&& next : graph.GetEdges(cur.to)) {
+      if (!dists[next.to].has_value() || dists[next.to].value() > dists[next.from].value() + next.weight) {
+        dists[next.to] = dists[next.from].value() + next.weight;
+        queue.emplace(next.from, next.to, dists[next.to].value());
       }
     }
   }
-
-  return distance;
+  return dists;
 }
 
-int main() {
+void SetIostream() {
   std::ios_base::sync_with_stdio(false);
   std::cin.tie(nullptr);
   std::cout.tie(nullptr);
-  std::cout.setf(std::ios::fixed);
-  std::cout.precision(10);
-  int64_t n{};
-  int64_t s{};
-  int64_t t{};
-  std::cin >> n >> s >> t;
-  s--;
-  t--;
-  std::vector<std::vector<std::pair<int64_t, int64_t>>> graph(n);
+}
 
-  for (int64_t i{}; i < n; i++) {
-    for (int64_t j{}; j < n; j++) {
-      int64_t w{};
-      std::cin >> w;
-      if (i == j) {
+int main() {
+  SetIostream();
+
+  size_t n{};
+  NodeType start{};
+  NodeType finish{};
+  std::cin >> n >> start >> finish;
+  --start;
+  --finish;
+  Graph graph(n);
+
+  for (NodeType from = 0; from < n; ++from) {
+    for (NodeType to = 0; to < n; ++to) {
+      WeightType weight{};
+      std::cin >> weight;
+      if (from == to || weight == -1) {
         continue;
       }
-      if (w == -1) {
-        continue;
-      }
-      graph[i].emplace_back(j, w);
+      graph.AddEdge({from, to, weight});
     }
   }
 
-  auto distances = Deikstra(s, graph);
-  if (distances[t] == 2'009'000'999) {
+  auto dists = Diijkstra(graph, start);
+  auto dist = dists[finish];
+  if (dist) {
+    std::cout << *dist;
+  } else {
     std::cout << -1;
-    return 0;
   }
-  std::cout << distances[t];
+  std::cout << '\n';
 }
