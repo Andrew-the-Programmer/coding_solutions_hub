@@ -1,116 +1,195 @@
+// Copyright 2024 Andrew
+
+#include <cmath>
+#include <cstddef>
+#include <cstdint>
 #include <iostream>
-#include <limits>
-#include <queue>
-#include <utility>
+#include <optional>
 #include <vector>
+#include <queue>
+#include <limits>
 
-std::vector<int64_t> FordBelman(int64_t vertice, const std::vector<std::vector<std::pair<int64_t, int64_t>>>& graph) {
-  size_t n = graph.size();
-  std::vector<int64_t> d(n, 2'009'000'999);
-  d[vertice] = 0;
+using NodeType = uint16_t;
+using WeightType = int32_t;
 
-  for (int64_t i = 0; i < static_cast<int64_t>(n) - 1; i++) {
-    for (int64_t j = 0; j < static_cast<int64_t>(n); j++) {
-      for (const auto& node : graph[j]) {
-        int64_t v = node.first;
-        int64_t weight = node.second;
-        if (d[j] != 2'009'000'999 && d[j] + weight < d[v]) {
-          d[v] = d[j] + weight;
+struct Edge {
+  NodeType from;
+  NodeType to;
+  WeightType weight;
+
+  Edge() = default;
+  Edge(NodeType from, NodeType to, WeightType weight) : from(from), to(to), weight(weight) {
+  }
+
+  friend auto& operator<<(std::ostream& stream, const Edge& edge) {
+    stream << edge.from << ' ' << edge.to << ' ' << edge.weight;
+    return stream;
+  }
+
+  friend std::istream& operator>>(std::istream& stream, Edge& edge) {
+    stream >> edge.from >> edge.to >> edge.weight;
+    return stream;
+  }
+};
+
+// Not oriented
+class Graph {
+  using AdjListT = std::vector<std::vector<Edge>>;
+
+ public:
+  explicit Graph(size_t n) : adj_list_(n) {
+  }
+
+  void AddEdge(const Edge& edge) {
+    adj_list_[edge.from].emplace_back(edge);
+  }
+
+  size_t CountNodes() const {
+    return adj_list_.size();
+  }
+
+  auto&& GetEdges(NodeType node) const {
+    return adj_list_[node];
+  }
+  auto&& GetEdges(NodeType node) {
+    return adj_list_[node];
+  }
+  void Clear() {
+    for (auto& v : adj_list_) {
+      v.clear();
+    }
+  }
+  void Resize(size_t n) {
+    adj_list_.resize(n);
+  }
+
+ protected:
+  AdjListT adj_list_;
+};
+
+auto Diijkstra(const Graph& graph, NodeType start) {
+  size_t n = graph.CountNodes();
+  std::vector<bool> visited(n, false);
+  std::vector<std::optional<WeightType>> dists(n);
+  dists[start] = 0;
+  auto cmp = [](const Edge& first, const Edge& second) { return first.weight > second.weight; };
+  std::priority_queue<Edge, std::vector<Edge>, decltype(cmp)> queue(cmp);
+  queue.emplace(start, start, 0);
+  while (!queue.empty()) {
+    auto cur = queue.top();
+    queue.pop();
+    if (visited[cur.to]) {
+      continue;
+    }
+    visited[cur.to] = true;
+    for (auto&& next : graph.GetEdges(cur.to)) {
+      if (!dists[next.to].has_value() || dists[next.to].value() > dists[next.from].value() + next.weight) {
+        dists[next.to] = dists[next.from].value() + next.weight;
+        queue.emplace(next.from, next.to, dists[next.to].value());
+      }
+    }
+  }
+  return dists;
+}
+
+auto BellmanFord(const Graph& graph, NodeType start) {
+  auto n = graph.CountNodes();
+  std::vector<bool> visited(n, false);
+  std::vector<std::optional<WeightType>> dists(n);
+  dists[start] = 0;
+
+  for (NodeType i = 0; i < n - 1; ++i) {
+    for (NodeType j = 0; j < n; ++j) {
+      for (const auto& edge : graph.GetEdges(j)) {
+        auto from = edge.from;
+        auto to = edge.to;
+        if (!dists[from].has_value()) {
+          continue;
+        }
+        auto new_dist = dists[from].value() + edge.weight;
+        if (!dists[to].has_value() || new_dist < dists[to].value()) {
+          dists[to] = new_dist;
         }
       }
     }
   }
-  return d;
+  return dists;
 }
 
-std::vector<int64_t> Dijkstra(int64_t vertice, const std::vector<std::vector<std::pair<int64_t, int64_t>>>& graph) {
-  std::vector<int64_t> d(graph.size(), 2'009'000'999);
-  std::vector<bool> visited(graph.size(), false);
-  d[vertice] = 0;
+// Explanation:
+// https://www.youtube.com/watch?v=MV7EAD9zL64&t=19s
+auto Johnson(const Graph& graph) {
+  auto n = graph.CountNodes();
+  auto graph_copy = graph;
 
-  std::priority_queue<std::pair<int64_t, int64_t>, std::vector<std::pair<int64_t, int64_t>>,
-                      std::greater<std::pair<int64_t, int64_t>>>
-      queue;
-  queue.emplace(0, vertice);
+  // Add a fictitious node "source"
+  graph_copy.Resize(n + 1);
+  NodeType source = n;
+  for (NodeType node = 0; node < n; ++node) {
+    graph_copy.AddEdge({source, node, 0});
+  }
 
-  while (!queue.empty()) {
-    int64_t num = queue.top().second;
-    queue.pop();
+  auto bf_dists = BellmanFord(graph_copy, source);
+  // Note: bf_dists[i][j] always has value
 
-    if (visited[num]) {
-      continue;
+  // Make edges positive
+  for (NodeType node = 0; node < n; ++node) {
+    for (auto& edge : graph_copy.GetEdges(node)) {
+      edge.weight += static_cast<WeightType>(*bf_dists[edge.from] - *bf_dists[edge.to]);
     }
-    visited[num] = true;
+  }
 
-    for (const auto& node : graph[num]) {
-      int64_t vertex = node.first;
-      int64_t weight = node.second;
+  // This makes Diijkstra correct
+  // Note that this does not remove source node
+  graph_copy.Resize(n);
 
-      if (d[num] + weight < d[vertex]) {
-        d[vertex] = d[num] + weight;
-        queue.emplace(d[vertex], vertex);
+  std::vector<std::vector<std::optional<WeightType>>> diij_dists(n);
+  for (NodeType start = 0; start < n; ++start) {
+    // Note that source node does not affect Diijkstra's result
+    diij_dists[start] = Diijkstra(graph_copy, start);
+  }
+
+  // Restore the answer
+  for (NodeType from = 0; from < n; ++from) {
+    for (NodeType to = 0; to < n; ++to) {
+      if (diij_dists[from][to].has_value()) {
+        *diij_dists[from][to] += static_cast<WeightType>(*bf_dists[to] - *bf_dists[from]);
       }
     }
   }
-
-  return d;
+  return diij_dists;
 }
 
-std::vector<std::vector<int64_t>> Johnson(std::vector<std::vector<std::pair<int64_t, int64_t>>>& graph) {
-  size_t n = graph.size();
-  std::vector<std::vector<std::pair<int64_t, int64_t>>> new_graph = graph;
-  for (int64_t i = 0; i < static_cast<int64_t>(n); ++i) {
-    new_graph.push_back({{i, 0}});
-  }
-  std::vector<int64_t> h = FordBelman(n, new_graph);  // NOLINT
-  std::vector<std::vector<std::pair<int64_t, int64_t>>> modified_graph(n);
-  for (int64_t u = 0; u < static_cast<int64_t>(n); ++u) {
-    for (const auto& node : graph[u]) {
-      int64_t v = node.first;
-      int64_t weight = node.second;
-      modified_graph[u].emplace_back(v, weight + h[u] - h[v]);
-    }
-  }
-  std::vector<std::vector<int64_t>> d(n, std::vector<int64_t>(n, 2'009'000'999));
-  for (int64_t u = 0; u < static_cast<int64_t>(n); ++u) {
-    d[u] = Dijkstra(u, modified_graph);
-  }
-  for (int64_t u = 0; u < static_cast<int64_t>(n); ++u) {
-    for (int64_t v = 0; v < static_cast<int64_t>(n); ++v) {
-      if (d[u][v] < 2'009'000'999) {
-        d[u][v] += h[v] - h[u];
-      }
-    }
-  }
-  return d;
-}
-
-int main() {
+void SetIostream() {
   std::ios_base::sync_with_stdio(false);
   std::cin.tie(nullptr);
   std::cout.tie(nullptr);
-  std::cout.setf(std::ios::fixed);
-  std::cout.precision(10);
-  int64_t n{};
-  int64_t m{};
+}
+
+int main() {
+  SetIostream();
+
+  size_t n{};
+  size_t m{};
   std::cin >> n >> m;
-  std::vector<std::vector<std::pair<int64_t, int64_t>>> graph(n);
-  for (int64_t i = 0; i < m; i++) {
-    int64_t a{};
-    int64_t b{};
-    int64_t w{};
-    std::cin >> a >> b >> w;
-    graph[a].emplace_back(b, w);
+  Graph graph(n);
+
+  for (size_t i = 0; i < m; ++i) {
+    Edge edge;
+    std::cin >> edge;
+    graph.AddEdge(edge);
   }
-  std::vector<std::vector<int64_t>> d = Johnson(graph);
-  int64_t max = std::numeric_limits<int64_t>::min();
-  for (int64_t i{}; i < n; i++) {
-    for (int64_t j{}; j < n; j++) {
-      if (d[i][j] < 2'009'000'999) {
-        max = std::max(max, d[i][j]);
+
+  auto dists = Johnson(graph);
+
+  // Find max
+  WeightType max = std::numeric_limits<WeightType>::min();
+  for (size_t i = 0; i < n; ++i) {
+    for (size_t j = 0; j < n; ++j) {
+      if (dists[i][j].has_value()) {
+        max = std::max(max, dists[i][j].value());
       }
     }
   }
-  std::cout << max;
-  return 0;
+  std::cout << max << std::endl;
 }
