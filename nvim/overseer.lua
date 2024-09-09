@@ -23,23 +23,28 @@ local term_execute = My.toggleterm.execute.term_execute
 
 -- execute_cmd("ls")
 
-function Configure()
-    local cmd = "./other/cpp/configure.*"
+local src_dir = "./other/"
+
+local function configure_build()
+    local cmd = src_dir .. "cpp/configure_build.*"
     execute_cmd(cmd)
 end
-
-function Build()
-    local cmd = "./other/cpp/build.*"
-    execute_cmd(cmd)
-end
-
 function Run()
-    local cmd = "./other/cpp/run.*"
+    local cmd = src_dir .. "cpp/run.*"
+    execute_cmd(cmd)
+end
+
+local function configure_debug()
+    local cmd = src_dir .. "cpp/configure_debug.*"
+    execute_cmd(cmd)
+end
+function Debug()
+    local cmd = src_dir .. "cpp/debug.*"
     execute_cmd(cmd)
 end
 
 function Test()
-    local cmd = "./other/test.*"
+    local cmd = src_dir .. "test.*"
     execute_cmd(cmd)
 end
 
@@ -55,16 +60,15 @@ function CdToCmakeSDir()
     execute_cmd("cd " .. CmakeSDir())
 end
 
-function BuildDone()
+function SetUp()
     CdToCmakeSDir()
-    Configure()
-    Build()
 end
 
 overseer.register_template({
     name = "g++ - build",
     builder = function()
-        BuildDone()
+        SetUp()
+        configure_build()
         return {
             name = "Done",
             cmd = { "echo" },
@@ -80,7 +84,8 @@ overseer.register_template({
 overseer.register_template({
     name = "g++ - run",
     builder = function()
-        BuildDone()
+        SetUp()
+        configure_build()
         Run()
         return {
             name = "Done",
@@ -97,8 +102,27 @@ overseer.register_template({
 overseer.register_template({
     name = "g++ - test",
     builder = function()
-        BuildDone()
+        SetUp()
+        configure_build()
         Test()
+        return {
+            name = "Done",
+            cmd = { "echo" },
+            args = { "Done" },
+        }
+    end,
+    condition = {
+        filetype = { "cpp" },
+        dir = vim.fn.getcwd(),
+    },
+})
+
+overseer.register_template({
+    name = "c++ - debug",
+    builder = function()
+        SetUp()
+        configure_debug()
+        Debug()
         return {
             name = "Done",
             cmd = { "echo" },
