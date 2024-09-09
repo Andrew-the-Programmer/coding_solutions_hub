@@ -31,7 +31,7 @@ std::vector<int64_t> Dijkstra(int64_t vertice, std::vector<std::vector<std::pair
   }
   return distance;
 }
-int64_t main() {
+int main() {
   std::ios_base::sync_with_stdio(false);
   std::cin.tie(nullptr);
   int64_t k{};
