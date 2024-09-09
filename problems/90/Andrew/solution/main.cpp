@@ -1,8 +1,6 @@
 #include <cstddef>
 #include <queue>
-#include <set>
 #include <vector>
-#include <functional>
 #include <iostream>
 
 using NodeType = size_t;
@@ -56,13 +54,11 @@ size_t PrimAlgorithm(const Graph& graph) {
   auto cmp = [](const Edge& first, const Edge& second) { return first.weight > second.weight; };
   std::priority_queue<Edge, std::vector<Edge>, decltype(cmp)> queue(cmp);
   std::vector<bool> visited(n, false);
-
   WeightType total_weight = 0;
 
   queue.emplace(0, 0, 0);
   while (!queue.empty()) {
     auto cur_edge = queue.top();
-    // std::cout << cur_edge << '\n';
     queue.pop();
     if (visited[cur_edge.to]) {
       continue;
@@ -99,5 +95,4 @@ int main() {
 
   auto min_weight = PrimAlgorithm(graph);
   std::cout << min_weight << '\n';
-  return 0;
 }

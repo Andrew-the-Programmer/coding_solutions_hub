@@ -1,12 +1,11 @@
 #include <cstddef>
-#include <cstdint>
 #include <iostream>
 #include <optional>
 #include <vector>
 #include <queue>
 
-using NodeType = int;
-using WeightType = int;
+using NodeType = size_t;
+using WeightType = size_t;
 
 struct Edge {
   NodeType from;
@@ -66,7 +65,7 @@ class Graph {
 };
 
 auto Diijkstra(const Graph& graph, NodeType start) {
-  size_t n = graph.CountNodes();
+  auto n = graph.CountNodes();
   std::vector<bool> visited(n, false);
   std::vector<std::optional<size_t>> dists(n);
   dists[start] = 0;
