@@ -29,11 +29,11 @@ struct Edge {
   }
 };
 
-class GraphOW {
+class Graph {
   using AdjListT = std::vector<std::vector<Edge>>;
 
  public:
-  explicit GraphOW(size_t n) : adj_list_(n) {
+  explicit Graph(size_t n) : adj_list_(n) {
   }
 
   void AddEdge(const Edge& edge) {
@@ -52,11 +52,8 @@ class GraphOW {
   AdjListT adj_list_;
 };
 
-using E = Edge;
-using G = GraphOW;
-
 // BFS for 0-1 graph
-auto BFS(const G& graph, NodeType start) {
+auto BFS(const Graph& graph, NodeType start) {
   std::vector<std::optional<size_t>> dist(graph.CountNodes());
   dist[start] = 0;
   std::deque<NodeType> deque;
@@ -86,9 +83,6 @@ auto BFS(const G& graph, NodeType start) {
 void SetIostream() {
   std::ios_base::sync_with_stdio(false);
   std::cin.tie(nullptr);
-  std::cout.tie(nullptr);
-  std::cout.setf(std::ios::fixed);
-  std::cout.precision(10);
 }
 
 int main() {
@@ -99,7 +93,7 @@ int main() {
 
   std::cin >> n >> m;
 
-  G graph(n);
+  Graph graph(n);
   // Input graph
   for (size_t i = 0; i < m; ++i) {
     NodeType from{};
