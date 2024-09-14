@@ -63,36 +63,26 @@ void DfsHelper(const Graph& graph, NodeType cur, std::vector<bool>& visited, std
   }
 }
 
-void Dfs(const Graph& graph, std::function<void(NodeType)> func) {
-  std::vector<bool> visited(graph.CountNodes(), false);
-  for (NodeType start = 0; start < graph.CountNodes(); ++start) {
-    if (!visited[start]) {
-      DfsHelper(graph, start, visited, func);
-    }
-  }
-}
-
 auto Solution(const Graph& graph, const Graph& graph_reversed) {
   auto n = graph.CountNodes();
 
-  // Nodes in order of DFS
+  // Nodes in DFS order
   std::deque<NodeType> nodes;
-  // auto add_node = [&nodes](NodeType cur) { nodes.push_back(cur); };
-  // Dfs(graph, add_node);
 
-  std::vector<bool> visited1(n, false);
+  std::vector<bool> visited(n, false);
 
   for (NodeType i = 0; i < n; i++) {
-    if (!visited1[i]) {
-      DfsStack(graph, i, visited1, nodes);
+    if (!visited[i]) {
+      DfsStack(graph, i, visited, nodes);
     }
   }
+  std::fill(visited.begin(), visited.end(), false);
 
   // components[node] - number of strong component
   std::vector<size_t> components(n, 0);
   size_t component_count = 0;
   auto add_component = [&components, &component_count](NodeType cur) { components[cur] = component_count; };
-  std::vector<bool> visited(n, false);
+
   while (!nodes.empty()) {
     auto cur = nodes.front();
     nodes.pop_front();
@@ -102,11 +92,11 @@ auto Solution(const Graph& graph, const Graph& graph_reversed) {
     }
   }
 
-  std::cout << component_count << std::endl;
+  std::cout << component_count << '\n';
   for (size_t i = 0; i < n; i++) {
     std::cout << components[i] << " ";
   }
-  std::cout << std::endl;
+  std::cout << '\n';
 }
 
 int main() {
