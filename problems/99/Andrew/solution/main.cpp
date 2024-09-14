@@ -67,7 +67,7 @@ class Graph {
   AdjListT adj_list_;
 };
 
-auto Diijkstra(const Graph& graph, NodeType start) {
+auto Dijkstra(const Graph& graph, NodeType start) {
   size_t n = graph.CountNodes();
   std::vector<bool> visited(n, false);
   std::vector<std::optional<WeightType>> dists(n);
@@ -139,14 +139,14 @@ auto Johnson(const Graph& graph) {
     }
   }
 
-  // This makes Diijkstra correct
+  // This makes Dijkstra correct
   // Note that this does not remove source node
   graph_copy.Resize(n);
 
   std::vector<std::vector<std::optional<WeightType>>> diij_dists(n);
   for (NodeType start = 0; start < n; ++start) {
-    // Note that source node does not affect Diijkstra's result
-    diij_dists[start] = Diijkstra(graph_copy, start);
+    // Note that source node does not affect Dijkstra's result
+    diij_dists[start] = Dijkstra(graph_copy, start);
   }
 
   // Restore the answer

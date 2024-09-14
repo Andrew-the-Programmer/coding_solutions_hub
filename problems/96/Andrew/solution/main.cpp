@@ -64,7 +64,7 @@ class Graph {
   AdjListT adj_list_;
 };
 
-auto Diijkstra(const Graph& graph, NodeType start) {
+auto Dijkstra(const Graph& graph, NodeType start) {
   auto n = graph.CountNodes();
   std::vector<bool> visited(n, false);
   std::vector<std::optional<size_t>> dists(n);
@@ -115,7 +115,7 @@ int main() {
     }
     NodeType start{};
     std::cin >> start;
-    auto dists = Diijkstra(graph, start);
+    auto dists = Dijkstra(graph, start);
     for (auto& dist : dists) {
       if (dist) {
         std::cout << *dist << ' ';

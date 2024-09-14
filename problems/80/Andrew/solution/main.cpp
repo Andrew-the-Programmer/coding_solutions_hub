@@ -55,7 +55,7 @@ class Graph {
 using E = Edge;
 using G = Graph;
 
-auto Diijkstra(const G& graph, NodeType start) {
+auto Dijkstra(const G& graph, NodeType start) {
   std::vector<std::optional<size_t>> dist(graph.CountNodes());
   dist[start] = 0;
 
@@ -103,7 +103,7 @@ int main() {
     graph.AddEdge(edge);
   }
 
-  auto dists = Diijkstra(graph, start);
+  auto dists = Dijkstra(graph, start);
   if (dists[finish].has_value()) {
     std::cout << dists[finish].value();
   } else {
