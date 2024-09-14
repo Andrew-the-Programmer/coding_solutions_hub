@@ -9,34 +9,35 @@
 using NodeType = size_t;
 using WeightType = int;
 
-struct EdgeOW {
+struct Edge {
   NodeType from;
   NodeType to;
   WeightType weight;
 
-  EdgeOW() = default;
-  EdgeOW(NodeType from, NodeType to, WeightType weight) : from(from), to(to), weight(weight) {
+  Edge() = default;
+  Edge(NodeType from, NodeType to, WeightType weight) : from(from), to(to), weight(weight) {
   }
 
-  friend auto& operator<<(std::ostream& stream, const EdgeOW& edge) {
+  friend auto& operator<<(std::ostream& stream, const Edge& edge) {
     stream << edge.from << ' ' << edge.to << ' ' << edge.weight;
     return stream;
   }
 
-  friend std::istream& operator>>(std::istream& stream, EdgeOW& edge) {
+  friend std::istream& operator>>(std::istream& stream, Edge& edge) {
     stream >> edge.from >> edge.to >> edge.weight;
     return stream;
   }
 };
 
-class GraphOW {
-  using AdjListT = std::vector<std::vector<EdgeOW>>;
+// graph: oriented
+class Graph {
+  using AdjListT = std::vector<std::vector<Edge>>;
 
  public:
-  explicit GraphOW(size_t n) : adj_list_(n) {
+  explicit Graph(size_t n) : adj_list_(n) {
   }
 
-  void AddEdge(const EdgeOW& edge) {
+  void AddEdge(const Edge& edge) {
     adj_list_[edge.from].emplace_back(edge);
   }
 
@@ -52,20 +53,17 @@ class GraphOW {
   AdjListT adj_list_;
 };
 
-using E = EdgeOW;
-using G = GraphOW;
-
-auto Djkstra(const G& graph, NodeType start) {
+auto Djkstra(const Graph& graph, NodeType start) {
   std::vector<std::optional<size_t>> dist(graph.CountNodes());
   dist[start] = 0;
 
-  auto cmp = [](const E& first, const E& second) { return first.weight > second.weight; };
+  auto cmp = [](const Edge& first, const Edge& second) { return first.weight > second.weight; };
 
-  std::priority_queue<E, std::vector<E>, decltype(cmp)> queue(cmp);
+  std::priority_queue<Edge, std::vector<Edge>, decltype(cmp)> queue(cmp);
 
   queue.emplace(start, start, 0);
   // Current edge (weights are distances)
-  E cur;
+  Edge cur;
   while (!queue.empty()) {
     cur = queue.top();
     queue.pop();
@@ -88,14 +86,14 @@ int main() {
 
   NodeType start{};
   NodeType finish{};
-  E edge;
+  Edge edge;
 
   std::cin >> n >> m;
   std::cin >> start >> finish;
   --start;
   --finish;
 
-  G graph(n);
+  Graph graph(n);
   for (size_t i = 0; i < m; ++i) {
     std::cin >> edge;
     --edge.from;
