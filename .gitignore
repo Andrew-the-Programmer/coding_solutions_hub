@@ -6,3 +6,4 @@ __pycache__
 .vscode
 !.vscode/tasks.json
 *.zip
+problems/**/ignore/
