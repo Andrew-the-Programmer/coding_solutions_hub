@@ -3,10 +3,10 @@
 import argparse
 import pathlib as pl
 
-from constants import CONTRIBUTORS_DIR, PROBLEMS_DIR
-from iterate_project import GetAllProblems, GetContributors, GetUniqueProblemId
+from constants import PROBLEMS_DIR
+from iterate_project import GetAllProblems, GetUniqueProblemId
 from my_select import Confirm, Select
-from update import UpdateContributor, UpdateProblem, UpdateUserDir
+from update import UpdateProblem
 
 import create_link
 
@@ -38,14 +38,6 @@ that your problem is a slight variation of another.
     return name
 
 
-def SelectUsername() -> str:
-    username = Select(
-        GetContributors(),
-        target="username",
-    )
-    return username
-
-
 def SelectProblem(target_path: pl.Path) -> None:
     problem_name = Select(
         [p.name for p in GetAllProblems(target_path)],
@@ -64,22 +56,6 @@ def AskProblemPath(problem_path: pl.Path) -> pl.Path:
     return problem_path
 
 
-def AskUsername(username: str) -> str:
-    if username:
-        return username
-    username = SelectUsername()
-    return username
-
-
-def AskUserdir(userdir_path: pl.Path) -> pl.Path:
-    if userdir_path:
-        return userdir_path
-    username = AskUsername(None)
-    problem_path = AskProblemPath(None)
-    userdir_path = problem_path / username
-    return userdir_path
-
-
 def CreateLink(problem_path: pl.Path, persist: bool | None) -> None:
     if persist is None:
         persist = Confirm("Would you like to create link to the problem? ")
@@ -88,23 +64,29 @@ def CreateLink(problem_path: pl.Path, persist: bool | None) -> None:
     create_link.CreateLink(problem_path, None)
 
 
-def CreateSolution(userdir_path: pl.Path | None) -> None:
-    userdir_path = AskUserdir(userdir_path)
-    username = userdir_path.name
-    problem_path = userdir_path.parent
+def CreateProblem(problem_path: pl.Path | None) -> None:
+    problem_path = AskProblemPath(problem_path)
     UpdateProblem(problem_path)
-    UpdateUserDir(userdir_path)
-    UpdateContributor(CONTRIBUTORS_DIR / username)
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Get site html")
+    parser = argparse.ArgumentParser(description="")
+    parser.add_argument("--new-problem", action="store_true", default=False)
     parser.add_argument(
-        "--userdir-path",
+        "--problem-name",
+        type=str,
+        help="""
+            Problem name
+            (./problems/<problem_name>)
+            """,
+        default=None,
+    )
+    parser.add_argument(
+        "--problem-path",
         type=pl.Path,
         help="""
-            Path to the userdir
-            (./problems/<problem_name>/<username>)
+            Path to the problem
+            (f.e. ./problems/<problem_name>)
             """,
         default=None,
     )
@@ -112,13 +94,20 @@ def main() -> None:
 
     args: argparse.Namespace = parser.parse_args()
 
-    userdir_path: pl.Path | None = args.userdir_path
+    problem_name: str | None = args.problem_name
+    problem_path: pl.Path | None = args.problem_path
     link: bool = args.create_link
+    new_problem: bool = args.new_problem
 
-    userdir_path = AskUserdir(userdir_path)
-    problem_path = userdir_path.parent
+    if new_problem:
+        problem_name = CreateProblemName()
 
-    CreateSolution(userdir_path)
+    if problem_path is None and problem_name is not None:
+        problem_path = PROBLEMS_DIR / problem_name
+
+    problem_path = AskProblemPath(problem_path)
+
+    CreateProblem(problem_path)
     CreateLink(problem_path, link)
 
 

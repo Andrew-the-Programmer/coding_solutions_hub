@@ -100,6 +100,24 @@ overseer.register_template({
 })
 
 overseer.register_template({
+    name = "g++ - run",
+    builder = function()
+        SetUp()
+        configure_build()
+        Run()
+        return {
+            name = "Done",
+            cmd = { "echo" },
+            args = { "Done" },
+        }
+    end,
+    condition = {
+        filetype = { "cpp" },
+        dir = vim.fn.getcwd(),
+    },
+})
+
+overseer.register_template({
     name = "g++ - test",
     builder = function()
         SetUp()
