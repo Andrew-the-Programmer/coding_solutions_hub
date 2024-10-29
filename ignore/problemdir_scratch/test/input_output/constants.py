@@ -30,6 +30,8 @@ def GetCasePath(case_name: str) -> pl.Path:
 
 
 def ListCases() -> list[pl.Path]:
+    if not CASES_DIR.is_dir():
+        return []
     return sorted([x for x in CASES_DIR.iterdir() if x.is_dir()])
 
 
