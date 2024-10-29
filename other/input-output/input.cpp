@@ -6,6 +6,13 @@ void Input(T& value, IStream& istream = std::cin) {
   istream >> value;
 }
 
+template <std::forward_iterator Iter>
+void Input(Iter begin, Iter end) {
+  for (auto i = begin; i != end; ++i) {
+    std::cin >> *i;
+  }
+}
+
 template <class T, class IStream = std::istream>
 void Input(T begin, T end, IStream& istream = std::cin) {
   for (auto i = begin; i != end; ++i) {
