@@ -20,7 +20,7 @@ def CreateProblemName(pid: str = None, desc: str = None) -> str:
         pid = f"{GetUniqueProblemId()}"
     name = Format(pid)
     if desc:
-        name += f"{name}-{Format(desc)}"
+        name = f"{name}-{Format(desc)}"
     return name
 
 
