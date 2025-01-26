@@ -3,10 +3,10 @@
 import argparse
 import pathlib as pl
 import re
+import shutil
 import subprocess
 import sys
 
-import shutil
 from constants import (GetCasePath, GetCorrectOutputFilePath, GetInputFilePath,
                        GetOutputFilePath, IsExecutable, ListCases)
 
@@ -157,6 +157,8 @@ correct output will be genereted by executable with stdin as input-file""",
         input_text = input_file.read_text()
     if output_file is not None:
         output_text = output_file.read_text()
+    if case_path is None:
+        case_path = GetCasePath(GetUniqueCaseName())
     InputTest(case_path, input_text, output_text)
 
 

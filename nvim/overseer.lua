@@ -21,31 +21,38 @@ end
 local execute_cmd = My.toggleterm.execute.execute_cmd
 local term_execute = My.toggleterm.execute.term_execute
 
--- execute_cmd("ls")
+local function Execute(cmd)
+    local opts = {
+        ask_input = false,
+        go_back = false,
+        error = false,
+    }
+    execute_cmd(cmd, opts)
+end
 
 local src_dir = "./other/"
 
 local function configure_build()
     local cmd = src_dir .. "cpp/configure_build.*"
-    execute_cmd(cmd)
+    Execute(cmd)
 end
 function Run()
     local cmd = src_dir .. "cpp/run.*"
-    execute_cmd(cmd)
+    Execute(cmd)
 end
 
 local function configure_debug()
     local cmd = src_dir .. "cpp/configure_debug.*"
-    execute_cmd(cmd)
+    Execute(cmd)
 end
 function Debug()
     local cmd = src_dir .. "cpp/debug.*"
-    execute_cmd(cmd)
+    Execute(cmd)
 end
 
 function Test()
     local cmd = src_dir .. "test.*"
-    execute_cmd(cmd)
+    Execute(cmd)
 end
 
 function CmakeSDir()
@@ -56,18 +63,14 @@ function CmakeSDir()
     return dir
 end
 
-function CdToCmakeSDir()
-    execute_cmd("cd " .. CmakeSDir())
-end
-
-function SetUp()
-    CdToCmakeSDir()
+function CdToCmakeDir()
+    Execute("cd " .. CmakeSDir())
 end
 
 overseer.register_template({
     name = "g++ - build",
     builder = function()
-        SetUp()
+        CdToCmakeDir()
         configure_build()
         return {
             name = "Done",
@@ -84,7 +87,7 @@ overseer.register_template({
 overseer.register_template({
     name = "g++ - run",
     builder = function()
-        SetUp()
+        CdToCmakeDir()
         configure_build()
         Run()
         return {
@@ -102,7 +105,7 @@ overseer.register_template({
 overseer.register_template({
     name = "g++ - run",
     builder = function()
-        SetUp()
+        CdToCmakeDir()
         configure_build()
         Run()
         return {
@@ -120,7 +123,7 @@ overseer.register_template({
 overseer.register_template({
     name = "g++ - test",
     builder = function()
-        SetUp()
+        CdToCmakeDir()
         configure_build()
         Test()
         return {
@@ -138,7 +141,7 @@ overseer.register_template({
 overseer.register_template({
     name = "c++ - debug",
     builder = function()
-        SetUp()
+        CdToCmakeDir()
         configure_debug()
         Debug()
         return {
@@ -158,18 +161,35 @@ overseer.register_template({
     builder = function()
         local outdirname = "out"
         local outdir = Dir() .. "/" .. outdirname
-        print(outdir)
-        local filebasename = vim.fn.fnamemodify(File(), ":t:r")
-        print(filebasename)
-        local targetfile = outdir .. "/" .. filebasename
+        local filebasename = Filebasename()
+        local execfile = outdir .. "/" .. filebasename
+        local file = File()
 
-        vim.cmd("silent !mkdir -p " .. outdir)
+        local args = {
+            "g++",
+            "-std=c++20",
+            "-I/usr/local/include",
+            "-L/usr/local/lib",
+            "-lboost_system",
+            "-lboost_coroutine",
+            "-lboost_context",
+            "-o " .. execfile,
+            file,
+        }
+        local cmd = ""
+
+        for _, v in pairs(args) do
+            cmd = cmd .. " " .. v
+        end
+
+        Execute("mkdir -p " .. outdir)
+        Execute(cmd)
+        Execute(execfile)
 
         return {
-            name = "g++",
-            cmd = { "g++" },
-            args = { File(), "-o", targetfile, "-std=c++20" },
-            components = { { "on_output_quickfix", open = true }, "default" },
+            name = "Done",
+            cmd = { "echo" },
+            args = { "Done" },
         }
     end,
     condition = {
