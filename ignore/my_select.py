@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-
-import argparse
-import pathlib as pl
 import subprocess
 from typing import Callable, Iterable
-
-import inquirer
 
 
 def _Select(options: Iterable[str], prompt: str = ">") -> str:
@@ -17,6 +11,7 @@ def _Select(options: Iterable[str], prompt: str = ">") -> str:
         text=True,
         encoding="utf-8",
         stdout=subprocess.PIPE,
+        check=False,
     )
     output = process.stdout.split("\n")[0]
     return output
@@ -72,5 +67,6 @@ def Select(
 def Confirm(message: str, **kwargs) -> bool:
     yes_option = "yes"
     no_option = "no"
-    selected = Select([yes_option, no_option], ask_new=False, prompt=message, **kwargs)
+    selected = Select([yes_option, no_option],
+                      ask_new=False, prompt=message, **kwargs)
     return selected == yes_option

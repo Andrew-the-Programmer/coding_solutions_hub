@@ -1,0 +1,5 @@
+abcde
+3
+2 4 bc
+2 4 cd
+2 4 bcd

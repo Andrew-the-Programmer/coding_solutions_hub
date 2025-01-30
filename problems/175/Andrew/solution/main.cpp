@@ -1,5 +1,4 @@
 #include <cstdint>
-#include <exception>
 #include <iostream>
 #include <vector>
 #include <string>
@@ -33,11 +32,11 @@ void Solution(const std::string& p, const std::string& t) {
     std::cout << 0 << std::endl;
   }
 
-  auto s = p + static_cast<char>(1) + t;
+  auto s = p + '#' + t;
   auto z = ZFunc(s);
 
   auto pb = s.begin();
-  auto pe = s.begin() + static_cast<int64_t>(p_size);
+  auto pe = pb + static_cast<int64_t>(p_size);
   auto tb = pe + 1;
   auto te = tb + static_cast<int64_t>(t_size);
   std::reverse(pb, pe);
@@ -62,9 +61,5 @@ int main() {
   std::string p;
   std::string t;
   std::cin >> p >> t;
-  try {
-    Solution(p, t);
-  } catch (std::exception&) {
-    std::cout << 0 << std::endl;
-  }
+  Solution(p, t);
 }
