@@ -3,6 +3,11 @@
 Hello :3\
 I study in MIPT-FPMI.
 This is a collection of all problems I've solved.
+I wish I improved this project earlier, when I needed it the most.
+But you can't just do it, it comes with time,
+years actually.
+Now solving problems is actually fun, and I wish you can find it fun too.
+It was hard af to get to this point, so good luck.
 
 # Features
 
