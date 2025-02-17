@@ -1,44 +1,33 @@
 import pathlib as pl
-import re
 import shutil
 
-
-def Here() -> pl.Path:
-    return pl.Path(__file__).parent
-
-
-def IsExecutable(path: pl.Path) -> bool:
-    return shutil.which(path) is not None
+from my_os import ListSubDir
+from project_navigator import ProjectNavigator, InputOutputTestsNavigator
 
 
-def UserDir(solution_dir: pl.Path) -> pl.Path:
-    return solution_dir.parent
 
-
-def ProblemDir(solution_dir: pl.Path) -> pl.Path:
-    return UserDir(solution_dir).parent
-
-
-def CasesDir(solution_dir: pl.Path) -> pl.Path:
-    return ProblemDir(solution_dir) / "test" / "input_output" / "cases"
-
-
-CASES_DIR = Here() / "cases"
-cases_dir = None
 OUTPUT_FILE_NAME = "output.txt"
 INPUT_FILE_NAME = "input.txt"
 CORRECT_OUTPUT_FILE_NAME = "correct_output.txt"
-CHECKER = Here() / "checkers" / "basic_checker.py"
+io_navigator = InputOutputTestsNavigator()
+CHECKER = (
+    ProjectNavigator.TestDir()
+    / "input_output"
+    / "checkers"
+    / "basic_checker.py"
+)
 
 
-def GetCasePath(case_name: str) -> pl.Path:
-    return CASES_DIR / case_name
+def FindChecker() -> pl.Path:
+    return CHECKER
 
 
-def ListCases() -> list[pl.Path]:
-    if not CASES_DIR.is_dir():
-        return []
-    return sorted([x for x in CASES_DIR.iterdir() if x.is_dir()])
+def GetCasePath(tests_dir: pl.Path, case_name: str) -> pl.Path:
+    return tests_dir / case_name
+
+
+def ListCases(tests_dir: pl.Path) -> list[pl.Path]:
+    return ListSubDir(tests_dir)
 
 
 def GetInputFilePath(case_path: pl.Path) -> pl.Path:

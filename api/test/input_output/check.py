@@ -3,26 +3,28 @@
 import pathlib as pl
 import subprocess
 
-from constants import (CHECKER, GetCorrectOutputFilePath,
-                                    GetInputFilePath, GetOutputFilePath)
+from .navigator import TestNavigator
 
 
-def Check(case_path: pl.Path) -> bool:
-    input_path = GetInputFilePath(case_path)
-    output_path = GetOutputFilePath(case_path)
-    correct_output = GetCorrectOutputFilePath(case_path)
+def Check(test_dir: pl.Path) -> bool:
+    test = TestNavigator(test_dir)
+    nav = test.Root()
+    checker = nav.FindChecker()
+    input_file = test.InputFile()
+    output_file = test.OutputFile()
+    correct_output_file = test.CorrectOutputFile()
     e = subprocess.run(
         [
-            CHECKER,
+            checker,
             "--input",
-            input_path,
+            input_file,
             "--output",
-            output_path,
+            output_file,
             "--correct-output",
-            correct_output,
+            correct_output_file,
         ],
         check=False,
     )
     if e.returncode != 0:
-        print(f"Test {case_path.name} failed")
+        print(f"Test {test.Name()} failed")
     return e
