@@ -2,7 +2,7 @@
 
 import argparse
 
-from create_problem import GetProblemName, SelectProblem
+from creat_problem import GetProblemName, SelectProblem
 from my_select import Select
 from project_navigator import ProjectNavigator
 

@@ -3,7 +3,7 @@
 import argparse
 import pathlib as pl
 
-from create_problem import SelectProblem
+from creat_problem import SelectProblem
 from my_os import Format, ListSubDir
 from my_select import Select
 from project_navigator import ProblemReference, ProjectNavigator
