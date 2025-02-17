@@ -1,39 +1,47 @@
 // Copyright 2024 Andrew
 
-// try number 6
-
+#include <cstdint>
 #include <cstdlib>
 #include <iostream>
 #include <memory>
+#include <random>
+#include <stack>
 #include <string>
 
-template <class Key, class Priority, class Cmp = std::less<Priority>>
-  requires requires(const Cmp& cmp, const Priority& lhs, const Priority& rhs) {
-    { cmp(lhs, rhs) } -> std::same_as<bool>;
-  } && requires(const Key& key1, const Key& key2) {
+template <class KeyType, class PriorityType>
+  requires requires(const PriorityType& pr1, const PriorityType& pr2) {
+    { pr1 < pr2 } -> std::same_as<bool>;
+  } && requires(const KeyType& key1, const KeyType& key2) {
     { key1 < key2 } -> std::same_as<bool>;
   }
 class Treap {
  public:
   struct Node : std::enable_shared_from_this<Node> {
    public:
-    using PointerType = std::shared_ptr<Node>;
-    using LinkType = std::weak_ptr<Node>;
-
-    Key key;
-    Priority priority;
-    size_t mass = 0;
+    using PointerType = Node*;
 
    protected:
+    KeyType key;
+    PriorityType priority;
+    size_t mass = 1;
     PointerType left = nullptr;
     PointerType right = nullptr;
 
    public:
-    PointerType Left() {
+    auto Left() {
       return left;
     }
-    PointerType Right() {
+    auto Right() {
       return right;
+    }
+    auto Mass() {
+      return mass;
+    }
+    auto Key() {
+      return key;
+    }
+    auto Priority() {
+      return priority;
     }
 
     void Update() {
@@ -45,57 +53,59 @@ class Treap {
         mass += right->mass;
       }
     }
+
     void SetLeft(PointerType left) {
       this->left = left;
       Update();
     }
+
     void SetRight(PointerType right) {
       this->right = right;
       Update();
     }
+
     void SetChild(PointerType child) {
-      if (child->key < key) {
+      if (child->Key() < key) {
         SetLeft(child);
       } else {
         SetRight(child);
       }
     }
-    PointerType Go(const Key& key) {
-      if (this->key < key) {
+
+    PointerType Go(const KeyType& key) {
+      if (this->Key() < key) {
         return Right();
       }
       return Left();
     }
-    template <class... Args>
-    static PointerType New(Args&&... args) {
-      return std::make_shared<Node>(std::forward<Args>(args)...);
-    }
-    Node(const Key& key, const Priority& priority) : key(key), priority(priority) {
+
+    Node(const KeyType& key, const PriorityType& priority) : key(key), priority(priority) {
     }
   };
 
   using PointerType = typename Node::PointerType;
-  using LinkType = typename Node::LinkType;
 
  protected:
   template <class... Args>
   static PointerType NewNode(Args&&... args) {
-    return Node::New(std::forward<Args>(args)...);
+    return new Node(std::forward<Args>(args)...);
   }
-  bool Compare(const Priority& lhs, const Priority& rhs) {
-    return cmp_(lhs, rhs);
+  static void DeleteNode(PointerType node) {
+    delete node;
   }
+
   size_t Mass(PointerType node) const {
     if (!node) {
       return 0;
     }
-    return node->mass;
+    return node->Mass();
   }
-  std::pair<PointerType, PointerType> Split(PointerType node, Key key) {
+
+  std::pair<PointerType, PointerType> Split(PointerType node, KeyType key) {
     if (!node) {
       return {nullptr, nullptr};
     }
-    if (key > node->key) {
+    if (key > node->Key()) {
       auto split = Split(node->Right(), key);
       node->SetRight(split.first);
       return {node, split.second};
@@ -104,6 +114,7 @@ class Treap {
     node->SetLeft(split.second);
     return {split.first, node};
   }
+
   PointerType Merge(PointerType left, PointerType right) {
     if (!left) {
       return right;
@@ -111,7 +122,7 @@ class Treap {
     if (!right) {
       return left;
     }
-    if (Compare(left->priority, right->priority)) {
+    if (left->Priority() < right->Priority()) {
       left->SetRight(Merge(left->Right(), right));
       return left;
     }
@@ -120,106 +131,88 @@ class Treap {
   }
 
  public:
-  explicit Treap(const Cmp& cmp = Cmp()) : root_(nullptr), cmp_(cmp) {
+  explicit Treap() : root_(nullptr) {
   }
 
-  void Insert(Key key, Priority priority) {
+  ~Treap() {
+    if (!root_) {
+      return;
+    }
+    // BFS
+    std::stack<PointerType> stack;
+    stack.push(root_);
+    while (!stack.empty()) {
+      auto node = stack.top();
+      stack.pop();
+      if (node->Left()) {
+        stack.push(node->Left());
+      }
+      if (node->Right()) {
+        stack.push(node->Right());
+      }
+      DeleteNode(node);
+    }
+  }
+
+  void Insert(KeyType key, PriorityType priority) {
     if (Contains(key)) {
       return;
     }
     auto new_node = NewNode(key, priority);
-    if (!root_) {
-      root_ = new_node;
-      return;
-    }
-    PointerType parent = nullptr;
-    auto node = root_;
-    while (node && !Compare(priority, node->priority)) {
-      parent = node;
-      node->mass++;
-      node = node->Go(key);
-    }
-    if (!node) {
-      parent->SetChild(new_node);
-      return;
-    }
-    // priority < node->priority
-    auto split = Split(node, key);
-    new_node->SetLeft(split.first);
-    new_node->SetRight(split.second);
-    if (!parent) {
-      root_ = new_node;
-      return;
-    }
-    parent->SetChild(new_node);
+    auto [left, right] = Split(root_, key);
+    root_ = Merge(Merge(left, new_node), right);
   }
 
-  void Delete(Key key) {
+  void Delete(KeyType key) {
     if (!Contains(key)) {
       return;
     }
-    auto node = root_;
-    PointerType parent = nullptr;
-    while (node && node->key != key) {
-      parent = node;
-      node->mass--;
-      node = node->Go(key);
-    }
-    if (!node) {
-      return;
-    }
-    auto merge = Merge(node->Left(), node->Right());
-    if (!parent) {
-      root_ = merge;
-      return;
-    }
-    if (parent->key > key) {
-      parent->SetLeft(merge);
-    } else {
-      parent->SetRight(merge);
-    }
+    auto [left, tmp] = Split(root_, key);
+    auto [target, right] = Split(tmp, key + 1);
+    DeleteNode(target);
+    root_ = Merge(left, right);
   }
 
-  bool Contains(Key key) const {
+  bool Contains(KeyType key) const {
     auto node = root_;
     if (!node) {
       return false;
     }
-    while (node && node->key != key) {
+    while (node && node->Key() != key) {
       node = node->Go(key);
     }
-    return static_cast<bool>(node);
+    return node != nullptr;
   }
 
-  PointerType Next(Key key) const {
+  PointerType Next(KeyType key) const {
     auto node = root_;
     if (!node) {
       return nullptr;
     }
-    while (key >= node->key && node->Right()) {
+    while (key >= node->Key() && node->Right()) {
       node = node->Right();
     }
-    while (node->Left() && node->Left()->key >= key) {
+    while (node->Left() && node->Left()->Key() >= key) {
       node = node->Left();
     }
-    if (key > node->key) {
+    if (key > node->Key()) {
       return nullptr;
     }
     return node;
   }
 
-  PointerType Prev(Key key) const {
+  PointerType Prev(KeyType key) const {
     auto node = root_;
     if (!node) {
       return nullptr;
     }
-    while (key <= node->key && node->Left()) {
+    while (key <= node->Key() && node->Left()) {
       node = node->Left();
     }
-    while (node->Right() && node->Right()->key <= key) {
+    while (node->Right() && node->Right()->Key() <= key) {
       node = node->Right();
     }
-    if (key < node->key) {
+    if (key < node->Key()) {
       return nullptr;
     }
     return node;
@@ -244,56 +237,58 @@ class Treap {
 
  protected:
   PointerType root_;
-  const Cmp cmp_;
 };
 
 int main() {
-  using Key = size_t;
-  using Priority = size_t;
+  using RNG = std::mt19937;
+  using KeyType = int64_t;
+  using PriorityType = RNG::result_type;
 
-  std::srand(time(nullptr));
+  Treap<KeyType, PriorityType> treap;
 
-  Treap<Key, Priority, std::less<Priority>> treap;
+  std::random_device dev;
+  RNG rng(dev());
+  std::uniform_int_distribution<PriorityType> rand_int;
 
   std::string request{};
   while (std::cin >> request) {
     if (request == "insert") {
-      Key key{};
+      KeyType key{};
       std::cin >> key;
-      treap.Insert(key, std::rand() % 3);
+      treap.Insert(key, rand_int(rng));
       continue;
     }
     if (request == "delete") {
-      Key key{};
+      KeyType key{};
       std::cin >> key;
       treap.Delete(key);
       continue;
     }
     if (request == "exists") {
-      Key key{};
+      KeyType key{};
       std::cin >> key;
       std::cout << (treap.Contains(key) ? "true" : "false") << '\n';
       continue;
     }
     if (request == "next") {
-      Key key{};
+      KeyType key{};
       std::cin >> key;
       auto next = treap.Next(key);
-      std::cout << (next ? std::to_string(next->key) : "none") << '\n';
+      std::cout << (next ? std::to_string(next->Key()) : "none") << '\n';
       continue;
     }
     if (request == "prev") {
-      Key key{};
+      KeyType key{};
       std::cin >> key;
       auto prev = treap.Prev(key);
-      std::cout << (prev ? std::to_string(prev->key) : "none") << '\n';
+      std::cout << (prev ? std::to_string(prev->Key()) : "none") << '\n';
       continue;
     }
     if (request == "kth") {
       size_t k{};
       std::cin >> k;
       auto kth = treap.Kth(k);
-      std::cout << (kth ? std::to_string(kth->key) : "none") << '\n';
+      std::cout << (kth ? std::to_string(kth->Key()) : "none") << '\n';
       continue;
     }
   }

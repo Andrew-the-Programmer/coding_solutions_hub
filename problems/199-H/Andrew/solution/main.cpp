@@ -6,7 +6,6 @@
 #include <vector>
 #include <iostream>
 #include <limits>
-// #include <boost/format.hpp>
 
 size_t Power2LowerBound(size_t n) {
   size_t result = 1;
@@ -24,9 +23,6 @@ class Ptr {
 
  public:
   template <class U>
-    requires requires(U i) {
-      { i } -> std::convertible_to<T>;
-    }
   explicit Ptr(U i) : index_(static_cast<T>(i)) {
   }
   Ptr() : index_(-1) {
@@ -44,29 +40,16 @@ class Ptr {
   bool operator!=(std::nullptr_t) const {
     return !(*this == nullptr);
   }
+
   operator bool() const {  // NOLINT
     return *this != nullptr;
-  }
-
-  operator T() const = delete;
-
-  auto operator++() {
-    return Ptr(++index_);
-  }
-  auto operator++(int) {
-    return Ptr(index_++);
-  }
-  auto operator--() {
-    return Ptr(--index_);
-  }
-  auto operator--(int) {
-    return Ptr(index_--);
   }
 
   friend auto& operator<<(std::ostream& os, const Ptr& ptr) {  // NOLINT
     os << ptr.index_;
     return os;
   }
+
   bool operator==(Ptr other) const {
     return index_ == other.index_;
   }
@@ -99,29 +82,34 @@ class SegmentTree {
       return promise_ + value;
     }
 
-   protected:
     F promise_;
   };
   class Node {
    public:
+    struct Domain {
+     public:
+      size_t l;
+      size_t r;
+    };
+
     ValueType value;
     PromiseType promise;
-
-    ValueType PromisedValue() {
-      return promise(value);
-    }
   };
 
-  using PointerType = Ptr;
+  using NodeDomain = Node::Domain;
 
- protected:
+ public:
   size_t Size() {
     return size_;
   }
+
+ protected:
+  using PointerType = Ptr;
+
   size_t HeapSize() {
     return p2lb_ + Size() - 1;
   }
-  std::pair<size_t, size_t> RootDomain() {
+  NodeDomain RootDomain() {
     return {0, p2lb_ - 1};
   }
   PointerType GetRoot() {
@@ -184,35 +172,10 @@ class SegmentTree {
     }
   }
 
- public:
-  explicit SegmentTree(const std::vector<ValueType>& vec, const OperationType& operation)
-      : size_(vec.size()), p2lb_(Power2LowerBound(size_)), nodes_(HeapSize()), operation_(operation) {
-    if (Size() == 0) {
-      throw std::runtime_error("Empty vector");
-    }
-    Build(vec);
-  }
-
-  void Build(const std::vector<ValueType>& vec) {
-    // boost::format fmt("QueryHelper: node = %1%, value = %2%");
-    for (size_t i = 0; i < Size(); ++i) {
-      auto node = Leaf(i);
-      At(node).value = vec[i];
-      // std::cout << fmt % node % At(node).value << '\n';
-    }
-    for (auto i = Leaf(0).Index() - 1; i >= 0; --i) {
-      auto node = PointerType(i);
-      Update(node);
-      // std::cout << fmt % node % At(node).value << '\n';
-    }
-  }
-
   void Push(PointerType node) {
-    // boost::format fmt("Push: node = %1%, value = %2%");
     if (!Check(node)) {
       return;
     }
-    // std::cout << fmt % node % At(node).value << std::endl;
     auto p = At(node).promise;
     if (Left(node)) {
       At(Left(node)).promise *= p;
@@ -224,63 +187,82 @@ class SegmentTree {
     At(node).promise = PromiseType();
   }
 
-  std::optional<ValueType> QueryHelper(PointerType node, const std::pair<size_t, size_t>& query_domain,
-                                       const std::pair<size_t, size_t>& node_domain) {
+  std::optional<ValueType> QueryHelper(PointerType node, const NodeDomain& query_domain,
+                                       const NodeDomain& node_domain) {
     const auto [left, right] = query_domain;
     auto [l, r] = node_domain;
-    // boost::format fmt("QueryHelper: node = %1%, (l,r) = (%2%, %3%)");
-    // std::cout << fmt % node % l % r << std::endl;
     if (r < left || l > right) {
-      // [l, r] doesn't intersect [left, right]
+      // node_domain doesn't intersect query_domain
       return {};
     }
-    if (left <= l && r <= right) {
-      // [l, r] subseteq [left, right]
-      return At(node).PromisedValue();
-    }
     Push(node);
+    if (left <= l && r <= right) {
+      // node_domain in query_domain
+      return At(node).value;
+    }
     auto mid = (l + r) / 2;
-    auto lhs = QueryHelper(Left(node), query_domain, {l, mid});
-    auto rhs = QueryHelper(Right(node), query_domain, {mid + 1, r});
-    // boost::format fmt2("QueryHelper: node = %1%, (lhs,rhs) = (%2%, %3%)");
-    // std::cout << fmt2 % node % Str(lhs) % Str(rhs) << std::endl;
+    NodeDomain left_domain = {l, mid};
+    NodeDomain right_domain = {mid + 1, r};
+    auto lhs = QueryHelper(Left(node), query_domain, left_domain);
+    auto rhs = QueryHelper(Right(node), query_domain, right_domain);
     return Operation(lhs, rhs);
   }
 
+  void UpdateRangeHelper(PointerType node, const NodeDomain& query_domain, const NodeDomain& node_domain,
+                         const PromiseType& operand) {
+    const auto [left, right] = query_domain;
+    auto [l, r] = node_domain;
+    if (r < left || l > right) {
+      // node_domain doesn't intersect query_domain
+      return;
+    }
+    if (left <= l && r <= right) {
+      // node_domain in query_domain
+      At(node).promise *= operand;
+      return;
+    }
+    auto mid = (l + r) / 2;
+    NodeDomain left_domain = {l, mid};
+    NodeDomain right_domain = {mid + 1, r};
+    UpdateRangeHelper(Left(node), query_domain, left_domain, operand);
+    UpdateRangeHelper(Right(node), query_domain, right_domain, operand);
+    auto lhs = QueryHelper(Left(node), {0, Size() - 1}, left_domain);
+    auto rhs = QueryHelper(Right(node), {0, Size() - 1}, right_domain);
+    At(node).value = Operation(lhs, rhs).value();
+  }
+
+ public:
+  SegmentTree(size_t size, const OperationType& operation)
+      : size_(size), p2lb_(Power2LowerBound(size_)), nodes_(HeapSize()), operation_(operation) {
+  }
+  SegmentTree(const std::vector<ValueType>& vec, const OperationType& operation) : SegmentTree(vec.size(), operation) {
+    if (Size() == 0) {
+      throw std::runtime_error("Empty vector");
+    }
+    Build(vec);
+  }
+
+  void Build(const std::vector<ValueType>& vec) {
+    for (size_t i = 0; i < Size(); ++i) {
+      auto node = Leaf(i);
+      At(node).value = vec[i];
+    }
+    for (auto i = Leaf(0).Index() - 1; i >= 0; --i) {
+      auto node = PointerType(i);
+      Update(node);
+    }
+  }
+
   auto Query(size_t left, size_t right) {
-    if (left > right || left >= Size() || right >= Size()) {
+    if (left > right || right >= Size()) {
       throw std::runtime_error("Query: invalid range");
     }
     return QueryHelper(GetRoot(), {left, right}, RootDomain()).value();
   }
 
-  void UpdateRangeHelper(PointerType node, const std::pair<size_t, size_t>& query_domain,
-                         const std::pair<size_t, size_t>& node_domain, const PromiseType& operand) {
-    const auto [left, right] = query_domain;
-    auto [l, r] = node_domain;
-    // boost::format fmt("UpdateRange: node = %1%, (l,r) = (%2%, %3%)");
-    // std::cout << fmt % node % l % r << std::endl;
-    if (r < left || l > right) {
-      // [l, r] doesn't intersect [left, right]
-      return;
-    }
-    if (left <= l && r <= right) {
-      // [l, r] subseteq [left, right]
-      At(node).promise *= operand;
-      return;
-    }
-    Push(node);
-    auto mid = (l + r) / 2;
-    UpdateRangeHelper(Left(node), query_domain, {l, mid}, operand);
-    UpdateRangeHelper(Right(node), query_domain, {mid + 1, r}, operand);
-    auto lhs = QueryHelper(Left(node), query_domain, {l, mid});
-    auto rhs = QueryHelper(Right(node), query_domain, {mid + 1, r});
-    At(node).value = Operation(lhs, rhs).value();
-  }
-
   template <class Operand>
     requires requires(Operand op) {
-      // op(operation_(a, b)) = operation_(op(a), op(b))
+      // NOTE: op(operation_(a, b)) = operation_(op(a), op(b))
       PromiseType(op);
     }
   void UpdateRange(size_t left, size_t right, const Operand& new_promise) {
@@ -301,7 +283,7 @@ class SegmentTree {
 };
 
 int main() {
-  using T = int;
+  using T = int64_t;
   size_t n{};
   std::cin >> n;
   std::vector<T> data(n);
@@ -310,9 +292,6 @@ int main() {
   }
   auto max = [](T lhs, T rhs) -> T { return std::max(lhs, rhs); };
   SegmentTree st(data, max);
-
-  // std::cout << sizeof(decltype(st)::Node) << std::endl;
-  // return 0;
 
   size_t k = 0;
   std::cin >> k;
@@ -328,7 +307,6 @@ int main() {
       case 'a': {
         T value{};
         std::cin >> value;
-        // auto add = [value = value](T v) -> T { return v + value; };
         st.UpdateRange(l, r, value);
         break;
       }

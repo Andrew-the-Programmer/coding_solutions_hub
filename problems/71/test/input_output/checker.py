@@ -1,1 +1,0 @@
-./checkers/sets.py

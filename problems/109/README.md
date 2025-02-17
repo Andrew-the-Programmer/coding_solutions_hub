@@ -1,12 +1,6 @@
- V. Оставь надежду, всяк сюда входящий — База 2024 2 сем. Задание 3\. Алгоритмы — Яндекс.КонтестВаше участие в соревновании завершено. Вы можете дорешивать задачи и отправлять решения вне соревнования
+V. Оставь надежду, всяк сюда входящий — База 2024 2 сем. Задание 3. Алгоритмы — Яндекс.КонтестВаше участие в соревновании завершено. Вы можете дорешивать задачи и отправлять решения вне соревнования
 
-
-
-V. Оставь надежду, всяк сюда входящий
-=====================================
-
-
-
+# V. Оставь надежду, всяк сюда входящий
 
 | Ограничение времени | 2 секунды |
 | --- | --- |
@@ -14,94 +8,53 @@ V. Оставь надежду, всяк сюда входящий
 | Ввод | стандартный ввод или input.txt |
 | Вывод | стандартный вывод или output.txt |
 
-
-
-
-
 Абитуриент Василий решил подать документы в ФПМИ. Так как Василий живёт достаточно далеко, он решил спланировать своё путешествие
- заранее.
- 
+заранее.
 
 В результате долгих размышлений он пришёл к выводу, что на дорогу у него есть не более T минут, так как приёмная комиссия скоро закроется. Бюджет будущего студента также ограничен, поэтому он хочет ещё и потратить
- на своё путешествие поменьше денег.
- 
-
+на своё путешествие поменьше денег.
 
 После ещё более долгих размышлений Василий составил карту из всех возможных путей с промежуточными пунктами (станции общественного
- транспорта или другие значимые для него объекты, до которых он гарантированно может добраться из дома). Карта представляет
- собой список из N пунктов, где дом Василия — это пункт с номером 1, а N \-й пункт — приёмная комиссия. Между пунктами существует M переходов. Для каждого из них он написал стоимость Pi и время Ti. При этом гарантируется, что он всегда может добраться до приёмной комиссии.
- 
-
+транспорта или другие значимые для него объекты, до которых он гарантированно может добраться из дома). Карта представляет
+собой список из N пунктов, где дом Василия — это пункт с номером 1, а N -й пункт — приёмная комиссия. Между пунктами существует M переходов. Для каждого из них он написал стоимость Pi и время Ti. При этом гарантируется, что он всегда может добраться до приёмной комиссии.
 
 Между любыми двумя пунктами в карте Василия имеется не более одного прямого перехода. Некоторые из переходов могут быть бесплатными
- или занимать пренебрежительно малое время. При этом любой переход двусторонний, то есть стоимость перехода и время не зависят
- от того, движется ли Василий из пункта с номером A в пункт с номером B, или в обратном направлении.
- 
-
+или занимать пренебрежительно малое время. При этом любой переход двусторонний, то есть стоимость перехода и время не зависят
+от того, движется ли Василий из пункта с номером A в пункт с номером B, или в обратном направлении.
 
 Помогите Василию найти минимальную стоимость маршрута, благодаря которому он сможет успеть подать документы и на который он
- потратит меньше всего денег.
- 
+потратит меньше всего денег.
 
-
-
-Формат ввода
-------------
-
-
+## Формат ввода
 
 В первой строке даны три числа: N — число пунктов (1 ≤ N ≤ 103), M — число переходов (1 ≤ M ≤ 5 ⋅ 104), T — максимальное время (0 ≤ T ≤ 103).
- 
 
-Далее идут M строк, содержащих по четыре целых неотрицательных числа — описание перехода: 
- 1. Ai — номер пункта, откуда идёт переход;
-2. Bi — номер пункта, куда приведёт переход (1 ≤ Ai, Bi ≤ N; ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEYAAAAdCAYAAAAXZxqwAAADnElEQVR4Xu2XSyg2YRTHXyE7cimJhVAW7hS5bIiUpayUIpEiiYVsyKWwQVkqK0QWNlZSsnGLhY1coiQUScn9dr7vnM9M8545M8/74v1YzK+e4v9/5jzHf+aZZ7jAQcTFBYd/OMFY4ARjgROMBcpgysvLweVywdjYGLd8zsHBAdTU1HBZBHu0Gn5+fhAcHAwFBQUwOTnJLxWxDeby8hICAwOpeF5eHrd9Tm1tLczPz3PZFi0Mjff3d7i4uKA6iYmJ5I2OjhqukLENZnh4GCoqKihtLLi7u8un+IyTkxPIzs7mshIejJG1tTXy4uLiuGVCrvBBamoqLC0tQX19PRVsb2/nU3xGc3MzzMzMcFmJXTC3t7fkBQUFccuEXOEvm5ublCw+iisrK1QwKioKXl9f+dRvBx/99PR0eHt745YSu2BWV1fJy8jI4JYJucJfGhsboaenR/9d25/e7vnP0NHRAePj41z2CB4M3lh8V2rvmNDQUFheXjZcISMG8/j4CBEREXB8fKxrAwMDtCCeUr7k+voaUlJS4Pn5mVseoQUjDXxSFhcX+SUiYjDT09NQUlLipp2enoK/vz+dUngHJIqLi7kk0traCjk5OeKIiYmB2NhYNy0/Px82NjZ4GRH+xCAY8uHhIfT29lL/VVVVdPM1pL7FYEpLS2FqaorLUFZWRouOjIxwiygqKuKSV9zd3UFSUhI8PDxwy2OkYIx0dXWR393drWtS36YKeEyGhYWJzc3OzlLRtLQ0bn0LQ0NDMDg4yGWvUAWzv79PPr5v7DBV6OvrM+1NaWxtbbldp2pIxdPTEyQnJ8PNzQ23vELVx/39PfnakW0136QkJCTA+vo6l3VaWlqoEJ5aHGkBiaamJnrqjAPfLZGRkSYdR1ZWlm1PRqz+UI29vT3yo6OjdU2a76bgMYZ3zY7t7W0qhMee8QWGSAt4An4b4cfk1dUVt7xGFUxnZyf5dXV1uibNd1Oqq6tpn6vIzMykYnh6GZEW8ISJiQloa2vj8qeQgnl5eXE7leLj4+H8/Fz3+XzS9B8+CuIICQkxztHBBYzzeBPSAirwAwy3ytnZGbe8gvdkHAEBARAeHk7/Xff395veY1LfZuULSAuomJubg4aGBi7/V6S+zcoXkBZQkZubC0dHR1z+r0h9m5VPIm0tFQsLC/QV+pNY9e35X+EDCgsLYWdnh8u/gh8LBr+wKysrufxr+LFgfjtOMBY4wVjgBGPBH15KRiiqlJYaAAAAAElFTkSuQmCC));
-3. Pi — стоимость перехода (0 ≤ Pi ≤ 106);
-4. Ti — продолжительность перехода (0 ≤ Ti ≤ 103).
+Далее идут M строк, содержащих по четыре целых неотрицательных числа — описание перехода:
 
+1. Ai — номер пункта, откуда идёт переход;
+1. Bi — номер пункта, куда приведёт переход (1 ≤ Ai, Bi ≤ N; ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEYAAAAdCAYAAAAXZxqwAAADnElEQVR4Xu2XSyg2YRTHXyE7cimJhVAW7hS5bIiUpayUIpEiiYVsyKWwQVkqK0QWNlZSsnGLhY1coiQUScn9dr7vnM9M8545M8/74v1YzK+e4v9/5jzHf+aZZ7jAQcTFBYd/OMFY4ARjgROMBcpgysvLweVywdjYGLd8zsHBAdTU1HBZBHu0Gn5+fhAcHAwFBQUwOTnJLxWxDeby8hICAwOpeF5eHrd9Tm1tLczPz3PZFi0Mjff3d7i4uKA6iYmJ5I2OjhqukLENZnh4GCoqKihtLLi7u8un+IyTkxPIzs7mshIejJG1tTXy4uLiuGVCrvBBamoqLC0tQX19PRVsb2/nU3xGc3MzzMzMcFmJXTC3t7fkBQUFccuEXOEvm5ublCw+iisrK1QwKioKXl9f+dRvBx/99PR0eHt745YSu2BWV1fJy8jI4JYJucJfGhsboaenR/9d25/e7vnP0NHRAePj41z2CB4M3lh8V2rvmNDQUFheXjZcISMG8/j4CBEREXB8fKxrAwMDtCCeUr7k+voaUlJS4Pn5mVseoQUjDXxSFhcX+SUiYjDT09NQUlLipp2enoK/vz+dUngHJIqLi7kk0traCjk5OeKIiYmB2NhYNy0/Px82NjZ4GRH+xCAY8uHhIfT29lL/VVVVdPM1pL7FYEpLS2FqaorLUFZWRouOjIxwiygqKuKSV9zd3UFSUhI8PDxwy2OkYIx0dXWR393drWtS36YKeEyGhYWJzc3OzlLRtLQ0bn0LQ0NDMDg4yGWvUAWzv79PPr5v7DBV6OvrM+1NaWxtbbldp2pIxdPTEyQnJ8PNzQ23vELVx/39PfnakW0136QkJCTA+vo6l3VaWlqoEJ5aHGkBiaamJnrqjAPfLZGRkSYdR1ZWlm1PRqz+UI29vT3yo6OjdU2a76bgMYZ3zY7t7W0qhMee8QWGSAt4An4b4cfk1dUVt7xGFUxnZyf5dXV1uibNd1Oqq6tpn6vIzMykYnh6GZEW8ISJiQloa2vj8qeQgnl5eXE7leLj4+H8/Fz3+XzS9B8+CuIICQkxztHBBYzzeBPSAirwAwy3ytnZGbe8gvdkHAEBARAeHk7/Xff395veY1LfZuULSAuomJubg4aGBi7/V6S+zcoXkBZQkZubC0dHR1z+r0h9m5VPIm0tFQsLC/QV+pNY9e35X+EDCgsLYWdnh8u/gh8LBr+wKysrufxr+LFgfjtOMBY4wVjgBGPBH15KRiiqlJYaAAAAAElFTkSuQmCC));
+1. Pi — стоимость перехода (0 ≤ Pi ≤ 106);
+1. Ti — продолжительность перехода (0 ≤ Ti ≤ 103).
 
+## Формат вывода
 
-
-
-
-Формат вывода
--------------
-
-
-
-Если добраться за отведённое время до приёмной комиссии невозможно, выведите единственное число −1\.
+Если добраться за отведённое время до приёмной комиссии невозможно, выведите единственное число −1.
 
 В противном случае, в первой строке выведите минимальное количество денег, требуемое для того, чтобы Василий успел подать
- документы.
- 
-
+документы.
 
 Во второй строке выведите L — число переходов, по которым Василию нужно пройти, чтобы успеть.
- 
-
 
 В третьей строке выведите L чисел, которые задают порядок пунктов, по которому должен пройти Василий, чтобы успеть и потратить меньше всего денег.
- 
-
-
 
 ### Пример 1
 
-
-
-
 | Ввод Скопировать ввод | Вывод Скопировать вывод |
 | --- | --- |
-| ``` 4 5 2 1 2 1 1 1 3 1 1 2 3 1 1 2 4 3 1 3 4 2 1  ``` | ``` 3 3 1 3 4   ``` |
-
+| `4 5 2 1 2 1 1 1 3 1 1 2 3 1 1 2 4 3 1 3 4 2 1 ` | `3 3 1 3 4  ` |
 
 ### Пример 2
 
-
-
-
 | Ввод Скопировать ввод | Вывод Скопировать вывод |
 | --- | --- |
-| ``` 4 5 2 1 2 1 1 1 3 1 1 2 3 1 1 2 4 3 2 3 4 2 2  ``` | ``` -1  ``` |
-
-
+| `4 5 2 1 2 1 1 1 3 1 1 2 3 1 1 2 4 3 2 3 4 2 2 ` | `-1 ` |
