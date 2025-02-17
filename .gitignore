@@ -7,3 +7,4 @@ __pycache__
 !.vscode/tasks.json
 *.zip
 problems/**/ignore/
+good_solution
