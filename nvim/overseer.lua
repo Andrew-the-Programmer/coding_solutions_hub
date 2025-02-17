@@ -3,41 +3,36 @@ local overseer = require("overseer")
 ---@type TermExecute
 local term = My.term.TermExecute:new()
 
-local src_dir = vim.fn.getcwd() .. "/api/"
-local test_dir = src_dir .. "test/"
+local api_dir = vim.fn.getcwd() .. "/api/"
+local src_dir = api_dir
+local test_dir = api_dir
 local add_test_exe = test_dir .. "add_test.py"
 local test_exe = test_dir .. "test.py"
-local cpp_dir = src_dir .. "cpp/"
-local run_exe = cpp_dir .. "run.py"
+local run_exe = src_dir .. "run.py"
+local run_only_exe = src_dir .. "run_only.py"
+local build_exe = src_dir .. "build.py"
 
 local function SolutionDir()
     return My.nvim.Dir()
 end
 
-function CmakeSDir()
-    local dir = My.nvim.Dir()
-    while vim.fn.filereadable(dir .. "/CMakeLists.txt") ~= 1 do
-        dir = vim.fn.fnamemodify(dir, ":h")
-    end
-    return dir
-end
-
-function CdToCmakeDir()
-    term:ChangeDir(CmakeSDir())
-end
-
 overseer.register_template({
     name = "c++ - run",
     builder = function()
-        local solution_dir = SolutionDir()
-        local run = {
-            run_exe,
-            solution_dir,
+        local file = My.nvim.File()
+        local build = {
+            build_exe,
+            file,
         }
-        CdToCmakeDir()
+        local run = {
+            run_only_exe,
+            file,
+        }
         local opts = My.term.SendConfig:new()
+        opts.check_error = false
+        term:Send(build, opts)
         opts.check_error = true
-        term:Send(run)
+        term:Send(run, opts)
         return {
             name = "Done",
             cmd = { "echo" },
@@ -53,20 +48,13 @@ overseer.register_template({
 overseer.register_template({
     name = "test",
     builder = function()
-        local solution_dir = SolutionDir()
-        local build = {
-            build_exe,
-            solution_dir,
-        }
         local test = {
             test_exe,
-            solution_dir,
+            My.nvim.File(),
         }
-        CdToCmakeDir()
         local opts = My.term.SendConfig:new()
-        opts.check_error = true
-        term:Send(build)
-        term:Send(test)
+        opts.check_error = false
+        term:Send(test, opts)
         return {
             name = "Done",
             cmd = { "echo" },
@@ -84,11 +72,11 @@ overseer.register_template({
     builder = function()
         local add_test = {
             add_test_exe,
+            My.nvim.File(),
         }
-        CdToCmakeDir()
         local opts = My.term.SendConfig:new()
-        opts.check_error = true
-        term:Send(add_test)
+        opts.check_error = false
+        term:Send(add_test, opts)
         return {
             name = "Done",
             cmd = { "echo" },
