@@ -25,9 +25,9 @@ class Ptr {
 
  public:
   template <class U>
-    requires requires(U i) {
-      { i } -> std::convertible_to<T>;
-    }
+  requires requires(U i) {
+    { i } -> std::convertible_to<T>;
+  }
   explicit Ptr(U i) : index_(static_cast<T>(i)) {
   }
   Ptr() : index_(-1) {
@@ -77,9 +77,9 @@ class Ptr {
 };
 
 template <class ValueType, class OperationType>
-  requires requires(const ValueType& v1, const ValueType& v2, const OperationType& op) {
-    { op(v1, v2) } -> std::same_as<ValueType>;
-  }
+requires requires(const ValueType& v1, const ValueType& v2, const OperationType& op) {
+  { op(v1, v2) } -> std::same_as<ValueType>;
+}
 class SegmentTree {
  public:
   struct PromiseType {
@@ -256,10 +256,10 @@ class SegmentTree {
   }
 
   template <class Operand>
-    requires requires(Operand op) {
-      // op(operation_(a, b)) = operation_(op(a), op(b))
-      PromiseType(op);
-    }
+  requires requires(Operand op) {
+    // op(operation_(a, b)) = operation_(op(a), op(b))
+    PromiseType(op);
+  }
   void UpdateRange(size_t left, size_t right, const Operand& new_promise) {
     if (left > right || right >= Size()) {
       throw std::runtime_error("Update: invalid range");
@@ -296,6 +296,7 @@ int main() {
     auto add = NextRand(a, b, cur);
     auto l = NextRand(a, b, cur);
     auto r = NextRand(a, b, cur);
+    // std::cout << l << ' ' << r << '\n';
     if (l > r) {
       std::swap(l, r);
     }
@@ -308,6 +309,8 @@ int main() {
     if (l > r) {
       std::swap(l, r);
     }
+    auto q = st.Query(l, r);
+    std::cout << q << '\n';
     sum += st.Query(l, r);
   }
   std::cout << sum << '\n';

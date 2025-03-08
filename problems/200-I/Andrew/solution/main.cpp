@@ -98,7 +98,6 @@ class Treap {
     size_t word_counter = 0;
     // kv = kiwi
     for (const auto& kv : nodes) {
-      // std::cout << kv.first << " " << kv.second << '\n';
       auto new_node = NewNode(kv.first, kv.second, word_counter++);
       auto node = last;
       while (node && Compare(new_node->priority, node->priority)) {
